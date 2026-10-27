@@ -99,12 +99,12 @@ public enum Sampling: Sendable, Equatable, Codable, CustomStringConvertible {
     case randomTop(Int, seed: UInt64?)
     case randomProbability(Double, seed: UInt64?)
     /// Random sampling with the framework's default parameters.
-    case random(seed: UInt64?)
+    case random
 
     public var description: String {
         switch self {
         case .greedy: "greedy"
-        case .random(let seed): "random" + Self.seedSuffix(seed)
+        case .random: "random"
         case .randomTop(let top, let seed): "random top \(top)" + Self.seedSuffix(seed)
         case .randomProbability(let threshold, let seed):
             "random probability \(threshold)" + Self.seedSuffix(seed)

@@ -270,7 +270,7 @@ final class NodeReader {
         if case .scalar(let scalar) = node {
             switch scalar.string {
             case "greedy": return .greedy
-            case "random": return .random(seed: nil)
+            case "random": return .random
             default: throw error(node, "`sampling` is `\(scalar.string)`; use `greedy`, `random` or a mapping")
             }
         }
@@ -299,7 +299,12 @@ final class NodeReader {
             }
             return .randomProbability(value, seed: seed)
         case (nil, nil):
-            return .random(seed: seed)
+            guard seed == nil else {
+                throw error(
+                    node,
+                    "a `seed` needs `top` or `probabilityThreshold`; the framework takes a seed only with one of them")
+            }
+            return .random
         case (_?, _?):
             throw error(node, "use either `top` or `probabilityThreshold`, not both")
         }

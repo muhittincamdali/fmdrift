@@ -72,8 +72,9 @@ struct SuiteLoaderTests {
 
     @Test(arguments: [
         ("greedy", Sampling.greedy),
-        ("random", Sampling.random(seed: nil)),
-        ("{ mode: random, seed: 3 }", Sampling.random(seed: 3)),
+        ("random", Sampling.random),
+        ("{ mode: random }", Sampling.random),
+        ("{ mode: random, top: 10, seed: 3 }", Sampling.randomTop(10, seed: 3)),
         ("{ mode: random, probabilityThreshold: 0.9 }", Sampling.randomProbability(0.9, seed: nil)),
         ("{ mode: greedy }", Sampling.greedy),
     ])
@@ -246,6 +247,10 @@ struct SuiteLoaderErrorTests {
         (
             "cases: [{ id: a, prompt: p, sampling: { mode: greedy, seed: 1 }, expect: [{ maxLength: 1 }] }]",
             "suite.yaml:1: greedy sampling takes no `top`, `probabilityThreshold` or `seed`"
+        ),
+        (
+            "cases: [{ id: a, prompt: p, sampling: { mode: random, seed: 1 }, expect: [{ maxLength: 1 }] }]",
+            "suite.yaml:1: a `seed` needs `top` or `probabilityThreshold`; the framework takes a seed only with one of them"
         ),
         (
             "cases: [{ id: a, prompt: p, expect: [{}] }]",
