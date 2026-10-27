@@ -1,0 +1,21 @@
+# SwiftPM and Xcode output
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcodeproj/
+/Packages/
+
+# Reports and snapshots written by local runs in the repository root
+/fmdrift-report.*
+/fmdrift-snapshots/
+
+# lychee link checker cache (local runs of the links job)
+.lycheecache
+
+# Local scratch space
+_work/
+
+# macOS
+.DS_Store
+Examples/*/Package.resolved

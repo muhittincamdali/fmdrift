@@ -1,0 +1,3 @@
+# Recorded snapshots and expected reports are compared byte for byte by the tests.
+Fixtures/snapshots/** -text
+Fixtures/expected/** -text
