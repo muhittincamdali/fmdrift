@@ -21,9 +21,12 @@ public struct Runner: Sendable {
         public var passed: Bool
     }
 
+    /// Runs every selected case and checks each answer.
     /// - Parameters:
-    ///   - cases: Case ids to run; nil runs all.
+    ///   - suite: The suite to run.
+    ///   - selection: Case ids to run; nil runs all.
     ///   - sampleCount: Runs per case; nil uses each case's `repeat`.
+    ///   - progress: Called after each generation.
     public func run(
         _ suite: Suite,
         cases selection: Set<String>? = nil,

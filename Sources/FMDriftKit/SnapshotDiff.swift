@@ -71,8 +71,11 @@ public struct SnapshotDiff: Sendable, Equatable, Codable {
     public var slowerCount: Int { cases.filter(\.slower).count }
 
     /// Compares two runs case by case.
-    /// - Parameter latencyIncrease: Share (0.5 = 50%) by which the median latency may grow
-    ///   before a case counts as slower; nil never marks a case slower.
+    /// - Parameters:
+    ///   - baseline: The earlier run, usually a snapshot from the previous OS build.
+    ///   - current: The later run.
+    ///   - latencyIncrease: Share (0.5 = 50%) by which the median latency may grow before a case
+    ///     counts as slower; nil never marks a case slower.
     public init(baseline: RunResult, current: RunResult, latencyIncrease: Double? = nil) {
         self.baseline = Side(
             suite: baseline.suite,
