@@ -302,6 +302,23 @@ struct SuiteLoaderErrorTests {
             "cases: [{ id: a, prompt: p, expect: [{ contains: [] }] }]",
             "suite.yaml:1: `contains` must not be an empty list"
         ),
+        // Found in every answer: the check would pass without looking at it.
+        (
+            "cases: [{ id: a, prompt: p, expect: [{ contains: \"\" }] }]",
+            "suite.yaml:1: `contains` must not hold empty text, which every answer contains"
+        ),
+        (
+            "cases: [{ id: a, prompt: p, expect: [{ containsAny: [x, ''] }] }]",
+            "suite.yaml:1: `containsAny` must not hold empty text, which every answer contains"
+        ),
+        (
+            "cases: [{ id: a, prompt: p, expect: [{ notContains: [''] }] }]",
+            "suite.yaml:1: `notContains` must not hold empty text, which every answer contains"
+        ),
+        (
+            "cases:\n  - id: a\n    prompt: p\n    expect:\n      - contains:\n          - x\n          - \"\"\n",
+            "suite.yaml:7: `contains` must not hold empty text, which every answer contains"
+        ),
         (
             "cases: [{ id: a, prompt: p, expect: { contains: x } }]",
             "suite.yaml:1: case `a`: `expect` must be a list of checks"
