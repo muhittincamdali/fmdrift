@@ -307,9 +307,9 @@ struct TextSafetyTests {
         #expect(!diff.contains("\u{1B}"))
     }
 
-    /// JSON stays valid with these raw, but `jq -r` prints them to the terminal: U+009B is a
-    /// one-byte CSI, U+202E reorders text, U+2028 breaks lines in some viewers, and tag
-    /// characters spell out hidden text.
+    /// JSON stays valid with these raw, but printing it would run them: U+009B is a one-byte
+    /// CSI, U+202E reorders text, U+2028 breaks lines in some viewers, and tag characters spell
+    /// out hidden text.
     @Test func jsonEscapesHiddenCharacters() throws {
         var run = SampleRuns.current
         let text = "a\u{9B}2Jb\u{202E}c\u{2028}d\u{7F}e\u{E0041}f\u{1B}g é ✓"
@@ -326,6 +326,21 @@ struct TextSafetyTests {
         let diff = JSONReport.diff(SnapshotDiff(baseline: SampleRuns.current, current: run))
         #expect(!diff.unicodeScalars.contains { $0.value == 0x9B || $0.value == 0x202E })
         #expect(diff.contains(#"\u009b"#))
+    }
+
+    /// JSON is data: the escapes keep the printed JSON inert, but any reader, `jq -r` included,
+    /// gets the model's characters back. SECURITY.md says so and points to `jq -a`.
+    @Test func jsonCarriesTextUnchangedForReaders() throws {
+        let text = "a\u{1B}[2Jb\u{9B}31mc\u{202E}d"
+        var run = SampleRuns.current
+        run.cases = [SampleRuns.result(SampleRuns.capital, [Generation(text: text, latency: 0.1)])]
+        let json = JSONReport.run(run)
+        #expect(!json.unicodeScalars.contains { [0x1B, 0x9B, 0x202E].contains($0.value) })
+        let object = try #require(try JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any])
+        let cases = try #require(object["cases"] as? [[String: Any]])
+        let samples = try #require(cases.first?["samples"] as? [[String: Any]])
+        let generation = try #require(samples.first?["generation"] as? [String: Any])
+        #expect(generation["text"] as? String == text)
     }
 
     @Test func reportsEscapeHostileOutputs() {
