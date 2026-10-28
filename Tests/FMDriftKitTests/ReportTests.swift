@@ -190,6 +190,17 @@ struct ReportTests {
     }
 }
 
+@Suite("Terminal color")
+struct TerminalStyleTests {
+    @Test func followsTheEnvironment() {
+        #expect(TerminalStyle.detect(environment: ["NO_COLOR": "1", "CLICOLOR_FORCE": "1"]).color == false)
+        #expect(TerminalStyle.detect(environment: ["CLICOLOR_FORCE": "1"]).color == true)
+        #expect(TerminalStyle.detect(environment: ["TERM": "dumb"]).color == false)
+        // Tests run with standard output redirected.
+        #expect(TerminalStyle.detect(environment: ["CLICOLOR_FORCE": "0"]).color == (isatty(STDOUT_FILENO) == 1))
+    }
+}
+
 @Suite("Untrusted text in reports")
 struct TextSafetyTests {
     let hostile =

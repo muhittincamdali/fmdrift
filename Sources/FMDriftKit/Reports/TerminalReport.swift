@@ -21,9 +21,11 @@ public struct TerminalStyle: Sendable {
     public func yellow(_ text: String) -> String { wrap(text, "33") }
     public func blue(_ text: String) -> String { wrap(text, "34") }
 
-    /// Color when standard output is a terminal and neither `NO_COLOR` nor `TERM=dumb` is set.
+    /// Color when standard output is a terminal and neither `NO_COLOR` nor `TERM=dumb` is set;
+    /// `CLICOLOR_FORCE=1` colors output that goes to a file or pipe.
     public static func detect(environment: [String: String] = ProcessInfo.processInfo.environment) -> TerminalStyle {
         if let noColor = environment["NO_COLOR"], !noColor.isEmpty { return .plain }
+        if let force = environment["CLICOLOR_FORCE"], !force.isEmpty, force != "0" { return TerminalStyle(color: true) }
         if environment["TERM"] == "dumb" { return .plain }
         return TerminalStyle(color: isatty(STDOUT_FILENO) == 1)
     }
@@ -255,8 +257,9 @@ public enum TerminalReport {
             budget -= piece.count
             switch segment.operation {
             case .equal: text += piece
-            case .removed: text += style.color ? style.red(piece) : "[-\(piece)-]"
-            case .added: text += style.color ? style.green(piece) : "{+\(piece)+}"
+            // The markers stay in color too: the blue report theme does not separate red from green.
+            case .removed: text += style.red("[-\(piece)-]")
+            case .added: text += style.green("{+\(piece)+}")
             }
             started = true
         }
