@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@ca20555a382a01893f78aa7ed23d00330f69a648 status=reviewed -->
+<!-- i18n-source: README.md@f4a2589fd7640b054cafe0fe7d23b6031a10affa status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-light.svg" alt="fmdrift: Snapshot and regression tests for prompts to Apple's on-device foundation model, compared across OS builds."></picture></p>
@@ -176,7 +176,7 @@ fmdrift run --json | jq '.runs[].cases[] | select(.passed | not) | .id'
 - **信頼できないテキスト。** モデルの出力には、ターミナルのエスケープシーケンス、双方向テキストの上書き、マークアップが含まれることがあります。テストでは、OSC 52、画面クリア、右から左への上書き、HTML、NUL をターミナル、Markdown、JUnit のレポートに通します。スイートとスナップショットのリーダーは、過大なファイル、深いネスト、YAML のエイリアスボムを拒否します。
 - **すべてのコマンドをプロセス内で**、OS ビルドを指定したスクリプト化モデルに対して実行します。あるビルドでの record、別のビルドでの run、diff のポリシー、replay、モデルがない場合、読み込めないファイルを含みます。
 
-116 件のテストは、Mac (Apple silicon)、macOS 27.0.1、Xcode 27.1 ですべて成功します。CI ワークフローは Xcode 26.6 と Xcode 27 で実行します。
+122 件のテストは、Mac (Apple silicon)、macOS 27.0.1、Xcode 27.1 ですべて成功します。CI ワークフローは Xcode 26.6 と Xcode 27 で実行します。
 
 ## 制限事項
 
