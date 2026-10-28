@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// Reads and writes snapshot files: a ``RunResult`` as pretty-printed JSON with sorted keys, so
@@ -6,11 +7,26 @@ public enum SnapshotStore {
     /// Larger files are refused before decoding.
     public static let maximumSize = 32 * 1024 * 1024
 
-    /// `<directory>/<suite>/<platform>-<version>-<build>.json`.
+    /// `<directory>/<suite folder>/<platform>-<version>-<build>.json`.
     public static func url(in directory: URL, suite: String, environment: RunEnvironment) -> URL {
-        directory
-            .appendingPathComponent(NodeReader.sanitizedName(suite), isDirectory: true)
-            .appendingPathComponent(environment.snapshotName + ".json")
+        folder(in: directory, suite: suite).appendingPathComponent(environment.snapshotName + ".json")
+    }
+
+    /// The folder that holds a suite's snapshots.
+    ///
+    /// A name that suite files allow (1–64 letters, digits, `-`, `_` or `.`, not starting with
+    /// `.`) is the folder name as it is. Any other name, which only the API can pass, has the
+    /// other characters replaced by `-` and gets `-` and 12 hex digits of its SHA-256 appended,
+    /// so that `a/b` and `a?b` do not share a folder.
+    public static func folder(in directory: URL, suite: String) -> URL {
+        directory.appendingPathComponent(folderName(suite), isDirectory: true)
+    }
+
+    static func folderName(_ suite: String) -> String {
+        let sanitized = NodeReader.sanitizedName(suite)
+        guard sanitized != suite else { return suite }
+        let digest = SHA256.hash(data: Data(suite.utf8)).prefix(6)
+        return sanitized + "-" + digest.map { String(format: "%02x", $0) }.joined()
     }
 
     public static func encode(_ result: RunResult) -> Data {
@@ -19,7 +35,16 @@ public enum SnapshotStore {
         return data
     }
 
+    /// Replaces a snapshot of the same suite, but refuses to replace one of another suite: names
+    /// that differ only in case share a folder on a case-insensitive disk, the default on macOS.
     public static func write(_ result: RunResult, to url: URL) throws(SnapshotError) {
+        if let existing = try? read(contentsOf: url), existing.suite != result.suite {
+            throw SnapshotError(
+                path: url.path,
+                message:
+                    "holds a snapshot of suite `\(Excerpt.of(existing.suite))`, not `\(Excerpt.of(result.suite))`; give each suite a name that differs in more than case"
+            )
+        }
         do {
             try FileManager.default.createDirectory(
                 at: url.deletingLastPathComponent(),
