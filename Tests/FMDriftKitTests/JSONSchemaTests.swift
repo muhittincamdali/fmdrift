@@ -144,7 +144,7 @@ struct FingerprintTests {
         var instructed = base
         instructed.settings.instructions = "Be brief."
         var sampled = base
-        sampled.settings.sampling = .random(seed: 1)
+        sampled.settings.sampling = .random
         var structured = base
         structured.schema = .boolean(description: nil)
         var checked = base
