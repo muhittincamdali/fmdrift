@@ -27,4 +27,6 @@
 - Baseline: The customer wants a refund for a double charge.
 - Current: The customer reports a double charge.
 
-How to fix a regression: The case passed on the baseline OS build and fails on this one. Compare the outputs; if the new model needs other wording, keep a prompt version per OS release and pick it with `if #available`. [Updating prompts for new model versions](https://developer.apple.com/documentation/foundationmodels/updating-prompts-for-new-model-versions)
+How to fix capital: The case passed on the baseline OS build and fails on this one. Compare the outputs; if the new model needs other wording, keep a prompt version per OS release and pick it with `if #available`. [Updating prompts for new model versions](https://developer.apple.com/documentation/foundationmodels/updating-prompts-for-new-model-versions)
+
+How to fix ticket-summary: The case passed on the baseline OS build and fails on this one. Compare the outputs; if the new model needs other wording, keep a prompt version per OS release and pick it with `if #available`. [Updating prompts for new model versions](https://developer.apple.com/documentation/foundationmodels/updating-prompts-for-new-model-versions)

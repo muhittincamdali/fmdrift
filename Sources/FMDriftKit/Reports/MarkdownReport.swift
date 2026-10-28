@@ -67,6 +67,10 @@ public enum MarkdownReport {
                 passing = Format.percent(only.passRate)
             }
             var notes: [String] = []
+            if let before = change.baseline, let after = change.current, abs(before.agreement - after.agreement) > 1e-9
+            {
+                notes.append("agreement \(Format.percent(before.agreement)) → \(Format.percent(after.agreement))")
+            }
             if change.slower { notes.append("slower than allowed") }
             if change.inputChanged { notes.append("input changed") }
             if !change.newlyFailingChecks.isEmpty {
@@ -92,10 +96,12 @@ public enum MarkdownReport {
                 lines.append("- Current: \(TextSafety.markdown(Excerpt.of(change.current?.output ?? "", limit: 300)))")
             }
         }
-        if diff.count(.regressed) > 0 {
+        let sameOSBuild = diff.baseline.environment.snapshotName == diff.current.environment.snapshotName
+        for change in diff.cases where change.status == .regressed {
+            let advice = Advice.forRegression(change, sameOSBuild: sameOSBuild)
             lines.append("")
             lines.append(
-                "How to fix a regression: \(Advice.regression.text) [\(Advice.regression.source.title)](\(Advice.regression.source.url))"
+                "How to fix \(TextSafety.markdown(change.id)): \(advice.text) [\(advice.source.title)](\(advice.source.url))"
             )
         }
         return lines.joined(separator: "\n") + "\n"

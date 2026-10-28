@@ -219,6 +219,35 @@ struct SnapshotDiffTests {
     }
 }
 
+@Suite("Agreement and regression advice")
+struct DiffAdviceTests {
+    @Test func aFallingAgreementIsAChange() {
+        let triage = Make.testCase("triage")
+        let before = Make.run(
+            [Make.result(triage, outputs: ["ok 1", "ok 1", "ok 1"])], environment: Make.environment27)
+        let after = Make.run([Make.result(triage, outputs: ["ok 1", "ok 2", "ok 3"])], environment: Make.environment27)
+        let change = SnapshotDiff(baseline: before, current: after).cases[0]
+        #expect(change.status == .changed)
+        #expect(change.baseline?.agreement == 1)
+    }
+
+    @Test func regressionAdviceFollowsTheCause() {
+        let testCase = Make.testCase("a")
+        let passing = Make.run([Make.result(testCase, outputs: ["ok"])], environment: Make.environment26)
+        let failing = Make.run([Make.result(testCase, outputs: ["no"])], environment: Make.environment27)
+        let newModel = SnapshotDiff(baseline: passing, current: failing).cases[0]
+        #expect(Advice.forRegression(newModel, sameOSBuild: false).source == .updatingPrompts)
+        #expect(Advice.forRegression(newModel, sameOSBuild: true).source == .prompting)
+
+        var edited = testCase
+        edited.prompt = "p, edited"
+        let editedRun = Make.run([Make.result(edited, outputs: ["no"])], environment: Make.environment26)
+        let editChange = SnapshotDiff(baseline: passing, current: editedRun).cases[0]
+        #expect(editChange.inputChanged)
+        #expect(Advice.forRegression(editChange, sameOSBuild: true).source == .evaluating)
+    }
+}
+
 @Suite("Word diffs")
 struct WordDiffTests {
     @Test func marksRemovedAndAddedWords() throws {

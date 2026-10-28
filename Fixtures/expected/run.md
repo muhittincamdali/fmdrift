@@ -28,4 +28,4 @@
 
 - model answers: guardrailViolation: May contain unsafe content (1 of 1)
 - length ≤ 200: no response (1 of 1)
-- How to fix: The guardrails flagged the prompt or the response. If the prompt transforms text a person supplied (summarize, rewrite, tag), try `guardrails: permissiveContentTransformations`; it applies to text responses only. [SystemLanguageModel.Guardrails.permissiveContentTransformations](https://developer.apple.com/documentation/foundationmodels/systemlanguagemodel/guardrails/permissivecontenttransformations)
+- How to fix: The guardrails flagged the prompt or the response, so the model threw guardrailViolation instead of answering. If a decline is the expected outcome, check for it with `refusal: true`; if the prompt transforms text a person supplied (summarize, rewrite, tag), try `guardrails: permissiveContentTransformations`, which applies to text responses only. [SystemLanguageModel.Guardrails.permissiveContentTransformations](https://developer.apple.com/documentation/foundationmodels/systemlanguagemodel/guardrails/permissivecontenttransformations)
