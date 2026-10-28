@@ -16,7 +16,7 @@ fmdrift 0.1.0 · suite demo · macOS 27.0.1 (26A434) · Apple M4 · on-device mo
  FAIL  news-summary    0/1   310 ms
        ✗ model answers — guardrailViolation: May contain unsafe content
        ✗ length ≤ 200 — no response
-       How to fix: The guardrails flagged the prompt or the response. If the prompt transforms text a person supplied (summarize, rewrite, tag), try `guardrails: permissiveContentTransformations`; it applies to text responses only.
+       How to fix: The guardrails flagged the prompt or the response, so the model threw guardrailViolation instead of answering. If a decline is the expected outcome, check for it with `refusal: true`; if the prompt transforms text a person supplied (summarize, rewrite, tag), try `guardrails: permissiveContentTransformations`, which applies to text responses only.
          https://developer.apple.com/documentation/foundationmodels/systemlanguagemodel/guardrails/permissivecontenttransformations
 
 5 cases · 2 passed · 3 failed · 7 generations in 3.25 s

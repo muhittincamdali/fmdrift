@@ -121,7 +121,7 @@ extension Advice {
         case .guardrailViolation where !expectsDecline:
             if settings.guardrails == .default {
                 return Advice(
-                    "The guardrails flagged the prompt or the response. If the prompt transforms text a person supplied (summarize, rewrite, tag), try `guardrails: permissiveContentTransformations`; it applies to text responses only.",
+                    "The guardrails flagged the prompt or the response, so the model threw guardrailViolation instead of answering. If a decline is the expected outcome, check for it with `refusal: true`; if the prompt transforms text a person supplied (summarize, rewrite, tag), try `guardrails: permissiveContentTransformations`, which applies to text responses only.",
                     .permissiveGuardrails
                 )
             }
@@ -193,9 +193,24 @@ extension Advice {
         return nil
     }
 
-    /// What to do when a case passed on the baseline OS build and fails on the current one.
-    public static let regression = Advice(
-        "The case passed on the baseline OS build and fails on this one. Compare the outputs; if the new model needs other wording, keep a prompt version per OS release and pick it with `if #available`.",
-        .updatingPrompts
-    )
+    /// What to do about a case that passed in the baseline and fails now. The cause decides the
+    /// advice: a new OS build (a new model), an edited input, or neither (an unstable prompt).
+    public static func forRegression(_ change: SnapshotDiff.CaseChange, sameOSBuild: Bool) -> Advice {
+        if change.inputChanged {
+            return Advice(
+                "The case passed before its prompt, instructions, options or schema changed, and fails now. Compare the outputs and keep the edit only if the new answers are what the app expects.",
+                .evaluating
+            )
+        }
+        if sameOSBuild {
+            return Advice(
+                "The case passed in the baseline on this same OS build and input, so the answers vary from run to run. Run it with `repeat` and `minPassRate`, or use greedy sampling where the answer must not vary.",
+                .prompting
+            )
+        }
+        return Advice(
+            "The case passed on the baseline OS build and fails on this one. Compare the outputs; if the new model needs other wording, keep a prompt version per OS release and pick it with `if #available`.",
+            .updatingPrompts
+        )
+    }
 }
