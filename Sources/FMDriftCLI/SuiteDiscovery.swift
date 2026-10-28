@@ -69,15 +69,22 @@ enum SuiteDiscovery {
             }
         }
         if failed { return nil }
-        var names: [String: URL] = [:]
+        // Keyed by the lowercased name: macOS disks ignore case, so `Support` and `support` would
+        // share a snapshot folder.
+        var names: [String: (url: URL, name: String)] = [:]
         for (url, suite) in loaded {
-            if let other = names[suite.name] {
+            let key = suite.name.lowercased()
+            if let other = names[key] {
+                let naming =
+                    other.name == suite.name
+                    ? "are both named `\(suite.name)`"
+                    : "are named `\(suite.name)` and `\(other.name)`, which differ only in case"
                 context.error(
-                    "\(context.display(url)) and \(context.display(other)) are both named `\(suite.name)`; snapshots are stored by suite name, so give each its own `name`"
+                    "\(context.display(url)) and \(context.display(other.url)) \(naming); snapshots are stored by suite name, so give each its own `name`"
                 )
                 return nil
             }
-            names[suite.name] = url
+            names[key] = (url, suite.name)
         }
         return loaded
     }

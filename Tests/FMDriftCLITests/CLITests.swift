@@ -316,6 +316,34 @@ struct CLITests {
         #expect(cli.stderr.contains("are both named `support`"))
     }
 
+    @Test func refusesSuiteNamesThatDifferOnlyInCase() async throws {
+        let cli = try harness()
+        try cli.write("fmdrift/a.yaml", supportSuite)
+        try cli.write("fmdrift/b.yaml", supportSuite.replacingOccurrences(of: "name: support", with: "name: Support"))
+        #expect(await cli.run("record", "fmdrift") == 2)
+        #expect(cli.stderr.contains("are named `Support` and `support`, which differ only in case"))
+        #expect(!cli.exists("fmdrift-snapshots"))
+    }
+
+    /// On a case-insensitive disk another suite's snapshots can sit in this suite's folder; a
+    /// baseline from the folder must be one of this suite.
+    @Test func skipsAnotherSuitesSnapshotInTheFolder() async throws {
+        let cli = try harness(goodAnswers, version: "26.4", build: "25E246")
+        #expect(await cli.run("record") == 0)
+        var other = try SnapshotStore.read(
+            contentsOf: cli.directory.appendingPathComponent("fmdrift-snapshots/support/macOS-26.4-25E246.json"))
+        other.suite = "Support"
+        other.environment.osBuild = "25F1"
+        other.recordedAt = other.recordedAt.addingTimeInterval(60)
+        try SnapshotStore.encode(other).write(
+            to: cli.directory.appendingPathComponent("fmdrift-snapshots/support/macOS-26.4-25F1.json"))
+        cli.provider = FakeProvider(
+            answers: goodAnswers, environmentValue: FakeProvider.environment("27.0.1", "26A434"))
+        #expect(await cli.run("run", "--baseline", "fmdrift-snapshots") == 0)
+        #expect(cli.stderr.contains("recorded for suite `Support`, not `support`"))
+        #expect(cli.stdout.contains("baseline  macOS 26.4 (25E246)"))
+    }
+
     @Test func findsSuitesInTheFmdriftFolder() async throws {
         let cli = try Harness(
             provider: FakeProvider(answers: goodAnswers, environmentValue: FakeProvider.environment("27.0.1", "26A434"))

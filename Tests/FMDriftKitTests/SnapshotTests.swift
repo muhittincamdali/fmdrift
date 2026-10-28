@@ -89,6 +89,48 @@ struct SnapshotStoreTests {
         #expect(text.contains(#""recordedAt" : "2026-10-26T"#))
     }
 
+    /// Names that suite files allow are folder names as they are; other names keep apart.
+    @Test func givesEachSuiteNameItsOwnFolder() {
+        func name(_ suite: String) -> String {
+            SnapshotStore.folder(in: directory, suite: suite).lastPathComponent
+        }
+        #expect(name("support") == "support")
+        #expect(name("Support.v2_b") == "Support.v2_b")
+        let names = [
+            "a/b", "a?b", "a b", "a-b", "../a-b", ".a-b", String(repeating: "x", count: 65),
+            String(repeating: "x", count: 64) + "y",
+        ]
+        #expect(Set(names.map(name)).count == names.count)
+        #expect(name("a/b").hasPrefix("a-b-"))
+        #expect(name("a/b").count == "a-b-".count + 12)
+        for suite in names {
+            #expect(!name(suite).contains("/"))
+            #expect(!name(suite).hasPrefix("."))
+            #expect(
+                SnapshotStore.folder(in: directory, suite: suite).deletingLastPathComponent().path == directory.path)
+        }
+    }
+
+    /// `Support` and `support` share a folder on a case-insensitive disk; neither replaces the
+    /// other's snapshot.
+    @Test func refusesToReplaceAnotherSuitesSnapshot() throws {
+        defer { try? FileManager.default.removeItem(at: directory) }
+        var run = Make.run([Make.result(Make.testCase("a"), outputs: ["ok"])], environment: Make.environment27)
+        let url = SnapshotStore.url(in: directory, suite: "support", environment: run.environment)
+        run.suite = "support"
+        try SnapshotStore.write(run, to: url)
+        try SnapshotStore.write(run, to: url)
+        var other = run
+        other.suite = "Support"
+        #expect(throws: SnapshotError.self) { try SnapshotStore.write(other, to: url) }
+        do {
+            try SnapshotStore.write(other, to: url)
+        } catch {
+            #expect(error.message.hasPrefix("holds a snapshot of suite `support`, not `Support`"))
+        }
+        #expect(try SnapshotStore.read(contentsOf: url).suite == "support")
+    }
+
     @Test func explainsUnreadableFiles() throws {
         defer { try? FileManager.default.removeItem(at: directory) }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

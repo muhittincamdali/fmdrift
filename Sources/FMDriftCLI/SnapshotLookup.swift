@@ -45,14 +45,22 @@ enum SnapshotLookup {
             }
         }
 
-        let folder = url.appendingPathComponent(suite, isDirectory: true)
+        let folder = SnapshotStore.folder(in: url, suite: suite)
         let files =
             ((try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? [])
             .filter { $0.pathExtension == "json" }
         var snapshots: [(URL, RunResult)] = []
         for file in files {
             do {
-                snapshots.append((file, try SnapshotStore.read(contentsOf: file)))
+                let result = try SnapshotStore.read(contentsOf: file)
+                // Another suite whose name differs only in case shares this folder on macOS.
+                guard result.suite == suite else {
+                    context.notice(
+                        "skipping \(context.display(file)): recorded for suite `\(Excerpt.of(result.suite))`, not `\(suite)`"
+                    )
+                    continue
+                }
+                snapshots.append((file, result))
             } catch {
                 context.notice("skipping \(context.display(file)): \(error.message)")
             }

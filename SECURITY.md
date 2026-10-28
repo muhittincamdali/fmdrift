@@ -50,7 +50,8 @@ include, for example:
   per suite, 32 MiB and 64 levels of nesting per snapshot, 2 seconds per regular expression
   match, and two abandoned matches or 30 seconds of matching per command, however many suites it
   runs),
-- a suite or snapshot name that makes `record` write outside the snapshot folder.
+- a suite or snapshot name that makes `record` write outside the snapshot folder or replace
+  another suite's snapshot.
 
 JSON output carries the model's text unchanged. The characters that reports hide are written as
 `\u` escapes, so the JSON itself is safe to print, but a JSON reader turns them back into the
