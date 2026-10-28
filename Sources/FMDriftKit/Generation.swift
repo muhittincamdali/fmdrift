@@ -30,8 +30,12 @@ public struct Generation: Sendable, Equatable, Codable {
         Generation(text: nil, latency: latency, failure: GenerationFailure(kind: kind, message: message))
     }
 
-    /// Snapshots with a longer recorded latency are refused. A day leaves room above the longest
-    /// `--timeout` (an hour) for a timed-out generation that returned late.
+    /// The longest a generation may wait for the model: the upper bound of `--timeout` and of a
+    /// suite's `maxLatency`.
+    public static let maximumWait: Double = 3600
+
+    /// Snapshots with a longer recorded latency are refused. A day leaves room above
+    /// ``maximumWait`` for a timed-out generation that returned late.
     public static let maximumRecordedLatency: Double = 86_400
 
     /// Snapshots are untrusted, so the numbers are checked: a latency of 1e300 has no meaning

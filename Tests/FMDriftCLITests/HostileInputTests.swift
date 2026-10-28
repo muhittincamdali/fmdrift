@@ -49,6 +49,20 @@ struct HostileInputTests {
         #expect(!cli.exists("diff.md"))
     }
 
+    /// `maxLatency: 1e308s` passed `validate` and then trapped in `run` while formatting the
+    /// check's label. Both commands now refuse it.
+    @Test func refusesLatencyLimitsBeyondTheLongestTimeout() async throws {
+        let cli = try harness()
+        try cli.write(
+            "fmdrift/slow.yaml",
+            "name: slow\ncases:\n  - id: a\n    prompt: hi\n    expect:\n      - maxLatency: 1e308s\n")
+        let refusal = "fmdrift/slow.yaml:6: `maxLatency` must be at most 3600s, the longest --timeout"
+        #expect(await cli.run("validate", "fmdrift") == 1)
+        #expect(cli.stdout == "invalid  \(refusal)\n")
+        #expect(await cli.run("run", "fmdrift") == 2)
+        #expect(cli.stderr == "error: \(refusal)\n")
+    }
+
     /// A file added to fmdrift/ by a pull request names itself in `validate` and `run` output,
     /// which CI logs show and terminals interpret.
     @Test func escapesFileNamesInMessages() async throws {

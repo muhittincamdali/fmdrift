@@ -53,8 +53,8 @@ struct RunOptions: ParsableArguments {
         if let repeatCount, !(1...SuiteLoader.maximumRepeat).contains(repeatCount) {
             throw ValidationError("--repeat must be between 1 and \(SuiteLoader.maximumRepeat)")
         }
-        guard timeout > 0, timeout <= 3600 else {
-            throw ValidationError("--timeout must be between 0 and 3600 seconds")
+        guard timeout > 0, timeout <= Generation.maximumWait else {
+            throw ValidationError("--timeout must be between 0 and \(Format.number(Generation.maximumWait)) seconds")
         }
         if replay != nil, repeatCount != nil {
             throw ValidationError("--replay checks the recorded responses; it cannot be combined with --repeat")

@@ -280,6 +280,23 @@ struct SuiteLoaderErrorTests {
             "cases: [{ id: a, prompt: p, expect: [{ maxLatency: soon }] }]",
             "suite.yaml:1: `maxLatency` must be a duration such as 2s, 1.5s or 800ms"
         ),
+        // Validated once as "ok", then trapped in `run` while formatting the label.
+        (
+            "cases: [{ id: a, prompt: p, expect: [{ maxLatency: 1e308s }] }]",
+            "suite.yaml:1: `maxLatency` must be at most 3600s, the longest --timeout"
+        ),
+        (
+            "cases: [{ id: a, prompt: p, expect: [{ maxLatency: 3600001ms }] }]",
+            "suite.yaml:1: `maxLatency` must be at most 3600s, the longest --timeout"
+        ),
+        (
+            "cases: [{ id: a, prompt: p, expect: [{ maxLatency: 1e999 }] }]",
+            "suite.yaml:1: `maxLatency` must be a duration such as 2s, 1.5s or 800ms"
+        ),
+        (
+            "cases: [{ id: a, prompt: p, expect: [{ maxLatency: nan }] }]",
+            "suite.yaml:1: `maxLatency` must be a duration such as 2s, 1.5s or 800ms"
+        ),
         ("cases: [{ id: a, prompt: p, expect: [{ refusal: yes }] }]", "suite.yaml:1: `refusal` must be true or false"),
         (
             "cases: [{ id: a, prompt: p, expect: [{ contains: [] }] }]",
@@ -296,6 +313,12 @@ struct SuiteLoaderErrorTests {
     ])
     func explainsWhatIsWrong(text: String, expected: String) {
         #expect(message(text) == expected)
+    }
+
+    @Test(arguments: ["3600s", "3600000ms", "3600"])
+    func acceptsTheLongestLatency(text: String) throws {
+        let suite = try SuiteLoader.parse("cases: [{ id: a, prompt: p, expect: [{ maxLatency: \(text) }] }]")
+        #expect(suite.cases[0].assertions == [Assertion(.maxLatency(3600))])
     }
 
     @Test func reportsTheLineOfAYAMLSyntaxError() {
