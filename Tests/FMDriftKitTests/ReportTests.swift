@@ -237,6 +237,16 @@ struct TextSafetyTests {
         #expect(TextSafety.markdown("time: 12:30, a.b") == "time: 12:30, a.b")
     }
 
+    /// GitHub links `GH-3`, in any case, to issue or pull request 3 of the repository.
+    @Test func markdownStopsGitHubIssueReferences() {
+        #expect(
+            TextSafety.markdown("see GH-3, gh-12 and Gh-7.")
+                == "see GH-&#8203;3, gh-&#8203;12 and Gh-&#8203;7."
+        )
+        // Only a hyphen between `GH` and a digit; the space is invisible, so `high-5` gets one too.
+        #expect(TextSafety.markdown("GH-x, GH 3, GH-, a-1") == "GH-x, GH 3, GH-, a-1")
+    }
+
     @Test func xmlEscapesMarkupAndInvalidCharacters() throws {
         let safe = TextSafety.xml(hostile)
         #expect(!safe.contains("<"))

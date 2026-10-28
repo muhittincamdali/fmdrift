@@ -49,11 +49,12 @@ public enum TextSafety {
     /// terminal, HTML and Markdown syntax neutralised, pipes escaped.
     ///
     /// A report is often posted as a pull request comment, where GitHub turns `@name` into a
-    /// mention that notifies that account, `#12` into a link that shows up on issue 12, and bare
-    /// `https://…` and `www.…` addresses into links. A backslash does not stop mentions and
-    /// issue links, which GitHub finds in the rendered text, so `@` and `#` are followed by a
-    /// zero-width space (`&#8203;`). The `:` of `://` and the `.` after `www` are
-    /// backslash-escaped, which shows the same text without a link.
+    /// mention that notifies that account, `#12` and `GH-12` (in any case) into links that show up
+    /// on issue 12, and bare `https://…` and `www.…` addresses into links. A backslash does not
+    /// stop mentions and issue links, which GitHub finds in the rendered text, so `@`, `#` and
+    /// the `-` of `GH-` before a digit are followed by a zero-width space (`&#8203;`). The `:` of
+    /// `://` and the `.` after `www` are backslash-escaped, which shows the same text without a
+    /// link.
     public static func markdown(_ text: String) -> String {
         var output = ""
         let characters = Array(terminal(text))
@@ -64,6 +65,8 @@ public enum TextSafety {
             case ">": output += "&gt;"
             case "|": output += "\\|"
             case "@", "#": output += "\(character)&#8203;"
+            case "-" where isIssueReference(characters, hyphenAt: index):
+                output += "-&#8203;"
             case "\\", "`", "*", "_", "[", "]", "~", "!": output += "\\\(character)"
             case ":" where characters[(index + 1)...].starts(with: "//"):
                 output += "\\:"
@@ -73,6 +76,15 @@ public enum TextSafety {
             }
         }
         return output
+    }
+
+    /// Whether the `-` at `index` is the hyphen of `GH-` followed by a digit, which GitHub links
+    /// to an issue or pull request.
+    private static func isIssueReference(_ characters: [Character], hyphenAt index: Int) -> Bool {
+        guard index >= 2, index + 1 < characters.count, characters[index + 1].isASCII,
+            characters[index + 1].isNumber
+        else { return false }
+        return String(characters[(index - 2)..<index]).lowercased() == "gh"
     }
 
     /// Text for XML attributes and character data. Characters XML 1.0 does not allow are
