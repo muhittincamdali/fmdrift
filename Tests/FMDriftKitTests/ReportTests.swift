@@ -247,6 +247,25 @@ struct TextSafetyTests {
         #expect(TextSafety.markdown("GH-x, GH 3, GH-, a-1") == "GH-x, GH 3, GH-, a-1")
     }
 
+    /// GitHub renders `$…$`, `$$…$$` and `` $`…`$ `` as math, in table cells and paragraphs
+    /// alike; a backslash or `&#36;` does not stop it, a `$` inside its own element does.
+    @Test func markdownStopsMath() {
+        let answer = #"$\huge\text{ALL TESTS PASSED}$ $$\color{green}{OK}$$ $`x`$ costs $5"#
+        let safe = TextSafety.markdown(answer)
+        #expect(!safe.replacingOccurrences(of: "<span>$</span>", with: "").contains("$"))
+        #expect(safe.hasPrefix(#"<span>$</span>\\huge"#))
+        #expect(safe.hasSuffix("costs <span>$</span>5"))
+        var run = SampleRuns.current
+        run.environment.chip = "$$\\Huge{M5}$$"
+        run.cases = [SampleRuns.result(SampleRuns.capital, [Generation(text: answer, latency: 0.1)])]
+        run.cases[0].id = "$x$"
+        for report in [
+            MarkdownReport.run(run), MarkdownReport.diff(SnapshotDiff(baseline: SampleRuns.current, current: run)),
+        ] {
+            #expect(!report.replacingOccurrences(of: "<span>$</span>", with: "").contains("$"))
+        }
+    }
+
     @Test func xmlEscapesMarkupAndInvalidCharacters() throws {
         let safe = TextSafety.xml(hostile)
         #expect(!safe.contains("<"))

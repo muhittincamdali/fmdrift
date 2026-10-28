@@ -55,6 +55,12 @@ public enum TextSafety {
     /// the `-` of `GH-` before a digit are followed by a zero-width space (`&#8203;`). The `:` of
     /// `://` and the `.` after `www` are backslash-escaped, which shows the same text without a
     /// link.
+    ///
+    /// GitHub also renders text between dollar signs (`$…$` and `$$…$$`, also with backticks
+    /// inside) as math, which can draw large, coloured text such as a fake "all tests passed".
+    /// Neither `\$` nor `&#36;` stops it, because GitHub looks for math in the rendered text;
+    /// each `$` is written as `<span>$</span>`, which GitHub's documentation gives for a literal
+    /// dollar sign.
     public static func markdown(_ text: String) -> String {
         var output = ""
         let characters = Array(terminal(text))
@@ -65,6 +71,7 @@ public enum TextSafety {
             case ">": output += "&gt;"
             case "|": output += "\\|"
             case "@", "#": output += "\(character)&#8203;"
+            case "$": output += "<span>$</span>"
             case "-" where isIssueReference(characters, hyphenAt: index):
                 output += "-&#8203;"
             case "\\", "`", "*", "_", "[", "]", "~", "!": output += "\\\(character)"
