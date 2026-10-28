@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@355659ddbd85705f4a1b2fe245a12f9813dad91c status=reviewed -->
+<!-- i18n-source: README.md@ba212cdfed594cb224fe99ff85e7c53bb5f78461 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-light.svg" alt="fmdrift: Snapshot and regression tests for prompts to Apple's on-device foundation model, compared across OS builds."></picture></p>
@@ -176,7 +176,7 @@ fmdrift run --json | jq '.runs[].cases[] | select(.passed | not) | .id'
 - **신뢰할 수 없는 텍스트.** 모델 출력에는 터미널 이스케이프, 양방향 텍스트 덮어쓰기, 마크업이 들어 있을 수 있습니다. 테스트는 OSC 52, 화면 지우기, 오른쪽에서 왼쪽으로의 덮어쓰기, HTML, NUL을 터미널, Markdown, JUnit 리포트에 통과시킵니다. 스위트와 스냅샷 리더는 지나치게 큰 파일, 깊은 중첩, YAML 별칭 폭탄을 거부합니다.
 - **모든 명령을 프로세스 안에서** 실행하며, OS 빌드를 지정한 스크립트 모델을 대상으로 합니다. 한 빌드에서 record하고 다른 빌드에서 run하는 경우, diff 정책, replay, 모델 없음, 읽을 수 없는 파일을 포함합니다.
 
-테스트 86개를 CI가 Xcode 26.6과 Xcode 27이 있는 macOS에서 실행합니다.
+테스트 97개는 Mac (Apple silicon), macOS 27.0.1, Xcode 27.1에서 모두 통과합니다. CI 워크플로는 Xcode 26.6과 Xcode 27에서 실행합니다.
 
 ## 제한 사항
 

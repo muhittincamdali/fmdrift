@@ -5,9 +5,9 @@ import Foundation
 /// Model output is untrusted: it can hold terminal escape sequences, bidirectional overrides
 /// that reorder what a reviewer sees, or markup. Each format escapes what would be interpreted.
 public enum TextSafety {
-    /// Replaces control characters (C0 except tab, C1, DEL), bidirectional controls and
-    /// zero-width characters with a visible `\u{…}` escape. Newlines become a space; reports show
-    /// one line per entry.
+    /// Replaces control characters (C0 except tab, C1, DEL), bidirectional controls, zero-width
+    /// and other invisible characters, line separators and tag characters with a visible
+    /// `\u{…}` escape. Newlines become a space; reports show one line per entry.
     public static func terminal(_ text: String) -> String {
         var output = ""
         output.unicodeScalars.reserveCapacity(text.unicodeScalars.count)
@@ -33,6 +33,14 @@ public enum TextSafety {
         case 0x202A...0x202E, 0x2066...0x2069, 0x061C: return true
         // Zero-width space, joiners, LRM/RLM, word joiner, BOM.
         case 0x200B...0x200F, 0x2060, 0xFEFF: return true
+        // Line and paragraph separators, which some log viewers break lines at.
+        case 0x2028, 0x2029: return true
+        // Soft hyphen, Mongolian vowel separator, invisible operators (function application,
+        // times, separator, plus), deprecated format characters, interlinear annotations.
+        case 0x00AD, 0x180E, 0x2061...0x2064, 0x206A...0x206F, 0xFFF9...0xFFFB: return true
+        // Tag characters can spell out hidden text. Emoji subdivision flags use them too, and
+        // show escaped: visible beats invisible here.
+        case 0xE0000...0xE007F: return true
         default: return false
         }
     }

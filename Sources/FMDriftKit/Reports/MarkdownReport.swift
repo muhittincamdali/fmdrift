@@ -7,7 +7,7 @@ public enum MarkdownReport {
         var lines = [
             "## fmdrift: \(TextSafety.markdown(result.suite))",
             "",
-            "\(result.passedCount) of \(result.cases.count) cases passed · \(result.generationCount) generations in \(Format.duration(result.duration)) · \(TextSafety.markdown(environment.osLabel))\(environment.chip.isEmpty ? "" : " · \(TextSafety.markdown(environment.chip))") · \(TextSafety.markdown(TerminalReport.providerLabel(environment)))",
+            "\(result.passedCount) of \(result.cases.count) cases passed · \(TerminalReport.work(result)) · \(TextSafety.markdown(environment.osLabel))\(environment.chip.isEmpty ? "" : " · \(TextSafety.markdown(environment.chip))") · \(TextSafety.markdown(TerminalReport.providerLabel(environment)))",
             "",
             "| | Case | Passing | Agreement | Median latency | Output |",
             "| --- | --- | --- | --- | --- | --- |",

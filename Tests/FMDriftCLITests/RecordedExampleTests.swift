@@ -51,7 +51,7 @@ struct RecordedExampleTests {
         let cli = try harness()
         #expect(await cli.run("validate") == 0)
         #expect(await cli.run("run", "--replay", "fmdrift-snapshots") == 0)
-        #expect(cli.stdout.contains("5 cases · 5 passed · 0 failed · 15 generations"))
+        #expect(cli.stdout.contains("5 cases · 5 passed · 0 failed · 15 recorded responses checked in "))
         #expect(!cli.stdout.contains("note:"))
     }
 
