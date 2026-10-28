@@ -14,11 +14,7 @@ public enum SnapshotStore {
     }
 
     public static func encode(_ result: RunResult) -> Data {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        encoder.dateEncodingStrategy = .iso8601
-        // Encoding plain value types cannot fail.
-        var data = (try? encoder.encode(result)) ?? Data()
+        var data = JSONOutput.data(result)
         data.append(0x0A)
         return data
     }

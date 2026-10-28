@@ -165,10 +165,7 @@ struct DoctorCommand: ContextCommand {
         let availability = await provider.availability()
         let environment = await provider.environment()
         if json {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-            let data = (try? encoder.encode(environment)) ?? Data()
-            context.write(String(decoding: data, as: UTF8.self) + "\n")
+            context.write(JSONOutput.text(environment))
         } else {
             let style = context.style
             var lines = [

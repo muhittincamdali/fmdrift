@@ -359,6 +359,13 @@ struct CLITests {
         #expect(!cli.stdout.contains("\u{1B}"))
         #expect(!cli.stdout.contains("\u{202E}"))
         #expect(cli.stdout.contains(#"macOS 27.0.1 (26A434\u{1B}[2J\u{202E})"#))
+
+        // JSON escapes what JSONEncoder leaves raw, so `jq -r` does not print it as it is.
+        for arguments in [["diff", "hostile.json", path, "--json"], ["run", "--baseline", "hostile.json", "--json"]] {
+            #expect(await cli.run(arguments) == 0)
+            #expect(!cli.stdout.contains("\u{202E}"))
+            #expect(cli.stdout.contains(#"26A434\u001b[2J\u202e"#))
+        }
     }
 
     @Test func reportsUnreadableSnapshots() async throws {

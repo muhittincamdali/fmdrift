@@ -198,12 +198,7 @@ enum JSONEnvelope {
 
     static func text(runs: [RunResult], diffs: [SnapshotDiff]) -> String {
         let passed = runs.allSatisfy(\.passed) && diffs.allSatisfy { $0.count(.regressed) == 0 }
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        encoder.dateEncodingStrategy = .iso8601
-        let body = Body(fmdriftVersion: FMDrift.version, passed: passed, runs: runs, diffs: diffs)
-        let data = (try? encoder.encode(body)) ?? Data()
-        return String(decoding: data, as: UTF8.self) + "\n"
+        return JSONOutput.text(Body(fmdriftVersion: FMDrift.version, passed: passed, runs: runs, diffs: diffs))
     }
 }
 

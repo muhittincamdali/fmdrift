@@ -262,6 +262,27 @@ struct TextSafetyTests {
         #expect(!diff.contains("\u{1B}"))
     }
 
+    /// JSON stays valid with these raw, but `jq -r` prints them to the terminal: U+009B is a
+    /// one-byte CSI, U+202E reorders text, U+2028 breaks lines in some viewers, and tag
+    /// characters spell out hidden text.
+    @Test func jsonEscapesHiddenCharacters() throws {
+        var run = SampleRuns.current
+        let text = "a\u{9B}2Jb\u{202E}c\u{2028}d\u{7F}e\u{E0041}f\u{1B}g é ✓"
+        run.cases = [SampleRuns.result(SampleRuns.capital, [Generation(text: text, latency: 0.1)])]
+        run.environment.chip = "M\u{202E}"
+        let json = JSONReport.run(run)
+        for value: UInt32 in [0x9B, 0x202E, 0x2028, 0x7F, 0xE0041, 0x1B] {
+            #expect(!json.unicodeScalars.contains { $0.value == value })
+        }
+        #expect(json.contains(#""text" : "a\u009b2Jb\u202ec\u2028d\u007fe\udb40\udc41f\u001bg é ✓""#))
+        #expect(json.contains(#""chip" : "M\u202e""#))
+        // Read back, the text is unchanged.
+        #expect(try SnapshotStore.decode(Data(json.utf8), path: "run.json") == run)
+        let diff = JSONReport.diff(SnapshotDiff(baseline: SampleRuns.current, current: run))
+        #expect(!diff.unicodeScalars.contains { $0.value == 0x9B || $0.value == 0x202E })
+        #expect(diff.contains(#"\u009b"#))
+    }
+
     @Test func reportsEscapeHostileOutputs() {
         var run = SampleRuns.current
         let testCase = SampleRuns.capital

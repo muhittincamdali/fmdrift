@@ -210,10 +210,6 @@ public enum JSONReport {
     }
 
     public static func diff(_ diff: SnapshotDiff) -> String {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        encoder.dateEncodingStrategy = .iso8601
-        let data = (try? encoder.encode(diff)) ?? Data()
-        return String(decoding: data, as: UTF8.self) + "\n"
+        JSONOutput.text(diff)
     }
 }
