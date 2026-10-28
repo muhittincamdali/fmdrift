@@ -95,11 +95,13 @@ struct ValidateCommand: ContextCommand {
             do {
                 let suite = try SuiteLoader.load(contentsOf: url)
                 let generations = suite.cases.reduce(0) { $0 + $1.repeatCount }
-                let cases = suite.cases.count == 1 ? "1 case" : "\(suite.cases.count) cases"
+                let summary = [
+                    "suite `\(suite.name)`",
+                    Format.count(suite.cases.count, "case", "cases"),
+                    Format.count(generations, "generation per run", "generations per run"),
+                ]
                 context.write(
-                    context.style.green("ok")
-                        + "  \(context.display(url)): suite `\(suite.name)`, \(cases), \(generations) generations per run\n"
-                )
+                    context.style.green("ok") + "  \(context.display(url)): \(summary.joined(separator: ", "))\n")
             } catch {
                 invalid += 1
                 context.write(

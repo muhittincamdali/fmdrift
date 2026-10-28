@@ -26,6 +26,11 @@ public enum Format {
         return "\(total / 60) min \(total % 60) s"
     }
 
+    /// `1 case`, `0 cases`, `2 cases`.
+    public static func count(_ value: Int, _ singular: String, _ plural: String) -> String {
+        value == 1 ? "1 \(singular)" : "\(value) \(plural)"
+    }
+
     /// `100%`, `67%`: whole percent, rounded half up.
     public static func percent(_ share: Double) -> String {
         "\(Int((share * 100).rounded()))%"

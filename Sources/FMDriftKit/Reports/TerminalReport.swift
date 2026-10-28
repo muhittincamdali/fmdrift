@@ -118,11 +118,21 @@ public enum TerminalReport {
     }
 
     static func summary(_ result: RunResult, style: TerminalStyle) -> String {
-        let cases = result.cases.count == 1 ? "1 case" : "\(result.cases.count) cases"
-        let generations = result.generationCount == 1 ? "1 generation" : "\(result.generationCount) generations"
+        let cases = Format.count(result.cases.count, "case", "cases")
         let passed = style.green("\(result.passedCount) passed")
         let failed = result.failedCount > 0 ? style.red("\(result.failedCount) failed") : "0 failed"
-        return "\(cases) · \(passed) · \(failed) · \(generations) in \(Format.duration(result.duration))"
+        return "\(cases) · \(passed) · \(failed) · \(work(result))"
+    }
+
+    /// `15 generations in 9.79 s`. A replay generates nothing: it checks recorded responses,
+    /// and its time is only the time to check them.
+    public static func work(_ result: RunResult) -> String {
+        let duration = Format.duration(result.duration)
+        if result.environment.provider == "replay" {
+            let responses = Format.count(result.generationCount, "recorded response", "recorded responses")
+            return "\(responses) checked in \(duration)"
+        }
+        return "\(Format.count(result.generationCount, "generation", "generations")) in \(duration)"
     }
 
     // MARK: Diffs
