@@ -42,7 +42,7 @@ Model answers, suites and snapshots are treated as untrusted input. Reports that
 include, for example:
 
 - an answer, case id, suite name or file name that makes the terminal, Markdown or JUnit report,
-  or JSON output read with `jq -r`, run escape sequences, render markup, mention people or link
+  or JSON output printed as it is, run escape sequences, render markup, mention people or link
   issues and addresses in a Markdown report posted to GitHub, reorder text through bidirectional
   controls, or hide text with invisible characters,
 - a suite or snapshot file that crashes fmdrift, exhausts memory or the stack, or keeps it busy
@@ -51,6 +51,13 @@ include, for example:
   match, and two abandoned matches or 30 seconds of matching per command, however many suites it
   runs),
 - a suite or snapshot name that makes `record` write outside the snapshot folder.
+
+JSON output carries the model's text unchanged. The characters that reports hide are written as
+`\u` escapes, so the JSON itself is safe to print, but a JSON reader turns them back into the
+original characters. `jq -r` prints escape sequences and bidirectional controls from an answer
+straight to the terminal, and plain `jq` writes its JSON again with U+009B and U+202E as they are.
+Use `jq -a` without `-r`, which writes control characters and everything outside ASCII as `\u`
+escapes, or escape strings yourself before they reach a terminal.
 
 What the model says, and whether Apple's guardrails flag it, is outside fmdrift's control; report
 model behaviour to Apple through Feedback Assistant.

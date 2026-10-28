@@ -3,10 +3,12 @@ import Foundation
 /// JSON as fmdrift writes it: snapshots, `--json` output and `doctor --json`. Pretty-printed with
 /// sorted keys, so committed snapshots show readable diffs.
 ///
-/// JSONEncoder escapes C0 control characters but writes the rest of a string as it is. The JSON
-/// stays valid, yet `jq -r` prints a model's U+009B (a one-byte CSI), U+202E or U+2028 straight
-/// to the terminal. Every character ``TextSafety`` hides in reports is written as a `\u` escape
-/// instead; parsers read back the same text.
+/// JSONEncoder escapes C0 control characters but writes the rest of a string as it is, so `cat`
+/// on the output would print a model's U+009B (a one-byte CSI), U+202E or U+2028 to the
+/// terminal. Every character ``TextSafety`` hides in reports is written as a `\u` escape
+/// instead. The text itself is not changed: parsers read back exactly what the model wrote, so
+/// `jq -r` prints those characters as they are, as it would from any JSON (`jq -a` keeps them
+/// escaped).
 public enum JSONOutput {
     public static func data(_ value: some Encodable) -> Data {
         let encoder = JSONEncoder()
