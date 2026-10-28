@@ -1,0 +1,160 @@
+{
+  "baseline" : {
+    "environment" : {
+      "chip" : "Apple M4",
+      "contextSize" : 4096,
+      "hardware" : "Mac16,10",
+      "locale" : "en_US",
+      "modelAvailability" : "available",
+      "osBuild" : "25E246",
+      "osVersion" : "26.4",
+      "platform" : "macOS",
+      "provider" : "system"
+    },
+    "fmdriftVersion" : "0.1.0",
+    "recordedAt" : "2026-10-20T00:00:00Z",
+    "suite" : "demo"
+  },
+  "cases" : [
+    {
+      "baseline" : {
+        "agreement" : 1,
+        "medianLatency" : 0.412,
+        "medianOutputTokens" : 2,
+        "output" : "Paris",
+        "passRate" : 1,
+        "passed" : true,
+        "samples" : 1
+      },
+      "current" : {
+        "agreement" : 1,
+        "medianLatency" : 0.388,
+        "medianOutputTokens" : 8,
+        "output" : "The capital of France is Paris.",
+        "passRate" : 0,
+        "passed" : false,
+        "samples" : 1
+      },
+      "id" : "capital",
+      "inputChanged" : false,
+      "newlyFailingChecks" : [
+        "equals \"Paris\""
+      ],
+      "slower" : false,
+      "status" : "regressed"
+    },
+    {
+      "baseline" : {
+        "agreement" : 0.6666666666666666,
+        "medianLatency" : 0.82,
+        "medianOutputTokens" : 12,
+        "output" : "The customer wants a refund for a double charge.",
+        "passRate" : 1,
+        "passed" : true,
+        "samples" : 3
+      },
+      "current" : {
+        "agreement" : 0.6666666666666666,
+        "medianLatency" : 1.21,
+        "medianOutputTokens" : 8,
+        "output" : "The customer reports a double charge.",
+        "passRate" : 0.3333333333333333,
+        "passed" : false,
+        "samples" : 3
+      },
+      "id" : "ticket-summary",
+      "inputChanged" : false,
+      "newlyFailingChecks" : [
+        "contains \"refund\" (ignoring case)",
+        "latency ≤ 1.00 s"
+      ],
+      "slower" : false,
+      "status" : "regressed"
+    },
+    {
+      "baseline" : {
+        "agreement" : 1,
+        "medianLatency" : 0.6,
+        "medianOutputTokens" : 7,
+        "output" : "{\"sentiment\": \"negative\"}",
+        "passRate" : 1,
+        "passed" : true,
+        "samples" : 1
+      },
+      "current" : {
+        "agreement" : 1,
+        "medianLatency" : 0.55,
+        "medianOutputTokens" : 7,
+        "output" : "{\"sentiment\": \"negative\"}",
+        "passRate" : 1,
+        "passed" : true,
+        "samples" : 1
+      },
+      "id" : "sentiment",
+      "inputChanged" : false,
+      "newlyFailingChecks" : [
+
+      ],
+      "slower" : false,
+      "status" : "unchanged"
+    },
+    {
+      "baseline" : {
+        "agreement" : 1,
+        "medianLatency" : 0.2,
+        "output" : "[guardrailViolation]",
+        "passRate" : 1,
+        "passed" : true,
+        "samples" : 1
+      },
+      "current" : {
+        "agreement" : 1,
+        "medianLatency" : 0.19,
+        "output" : "[guardrailViolation]",
+        "passRate" : 1,
+        "passed" : true,
+        "samples" : 1
+      },
+      "id" : "unsafe-request",
+      "inputChanged" : false,
+      "newlyFailingChecks" : [
+
+      ],
+      "slower" : false,
+      "status" : "unchanged"
+    },
+    {
+      "current" : {
+        "agreement" : 1,
+        "medianLatency" : 0.31,
+        "output" : "[guardrailViolation]",
+        "passRate" : 0,
+        "passed" : false,
+        "samples" : 1
+      },
+      "id" : "news-summary",
+      "inputChanged" : false,
+      "newlyFailingChecks" : [
+
+      ],
+      "slower" : false,
+      "status" : "added"
+    }
+  ],
+  "current" : {
+    "environment" : {
+      "chip" : "Apple M4",
+      "contextSize" : 4096,
+      "hardware" : "Mac16,10",
+      "locale" : "en_US",
+      "modelAvailability" : "available",
+      "osBuild" : "26A434",
+      "osVersion" : "27.0.1",
+      "platform" : "macOS",
+      "provider" : "system"
+    },
+    "fmdriftVersion" : "0.1.0",
+    "recordedAt" : "2026-10-27T00:00:00Z",
+    "suite" : "demo"
+  }
+}

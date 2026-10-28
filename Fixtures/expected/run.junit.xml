@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="fmdrift" tests="5" failures="3" time="3.250">
+  <testsuite name="demo" tests="5" failures="3" errors="0" skipped="0" time="3.250">
+    <properties>
+      <property name="fmdrift.version" value="0.1.0"/>
+      <property name="os" value="macOS 27.0.1 (26A434)"/>
+      <property name="os.build" value="26A434"/>
+      <property name="hardware" value="Mac16,10"/>
+      <property name="chip" value="Apple M4"/>
+      <property name="locale" value="en_US"/>
+      <property name="provider" value="system"/>
+      <property name="model.availability" value="available"/>
+    </properties>
+    <testcase classname="demo" name="capital" time="0.388">
+      <failure message="equals &quot;Paris&quot;: got &quot;The capital of France is Paris.&quot;" type="fmdrift.check">0 of 1 responses passed; 100% needed.&#10;equals &quot;Paris&quot;: got &quot;The capital of France is Paris.&quot; (1 of 1)&#10;How to fix: When the output must follow a fixed format or vocabulary, use a `schema` with `enum` or `pattern` so guided generation enforces it. https://developer.apple.com/documentation/foundationmodels/generating-swift-data-structures-with-guided-generation</failure>
+      <system-out>The capital of France is Paris.</system-out>
+    </testcase>
+    <testcase classname="demo" name="ticket-summary" time="3.480">
+      <failure message="contains &quot;refund&quot; (ignoring case): missing &quot;refund&quot; in &quot;The customer reports a double charge.&quot;" type="fmdrift.check">1 of 3 responses passed; 100% needed.&#10;contains &quot;refund&quot; (ignoring case): missing &quot;refund&quot; in &quot;The customer reports a double charge.&quot; (2 of 3)&#10;latency ≤ 1.00 s: took 1.21 s (2 of 3)&#10;How to fix: Latency grows with the tokens read and written. Lower `maxResponseTokens`, shorten the instructions, and profile with the Foundation Models instrument; in the app, `prewarm(promptPrefix:)` loads the model before the request. https://developer.apple.com/documentation/foundationmodels/analyzing-the-runtime-performance-of-your-foundation-models-app&#10;How to fix: Some responses passed and some did not. Make the instructions more specific, give an example of the output you want, or use greedy sampling where the answer must not vary. https://developer.apple.com/documentation/foundationmodels/prompting-an-on-device-foundation-model</failure>
+      <system-out>The customer reports a double charge.</system-out>
+    </testcase>
+    <testcase classname="demo" name="sentiment" time="0.550"/>
+    <testcase classname="demo" name="unsafe-request" time="0.190"/>
+    <testcase classname="demo" name="news-summary" time="0.310">
+      <failure message="model answers: guardrailViolation: May contain unsafe content" type="fmdrift.check">0 of 1 responses passed; 100% needed.&#10;model answers: guardrailViolation: May contain unsafe content (1 of 1)&#10;length ≤ 200: no response (1 of 1)&#10;How to fix: The guardrails flagged the prompt or the response. If the prompt transforms text a person supplied (summarize, rewrite, tag), try `guardrails: permissiveContentTransformations`; it applies to text responses only. https://developer.apple.com/documentation/foundationmodels/systemlanguagemodel/guardrails/permissivecontenttransformations</failure>
+      <system-out>[guardrailViolation]</system-out>
+    </testcase>
+  </testsuite>
+</testsuites>
