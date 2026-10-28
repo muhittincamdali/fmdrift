@@ -28,6 +28,8 @@ class Fmdrift < Formula
   desc "Regression tests for prompts to Apple's on-device foundation model"
   homepage "https://github.com/muhittincamdali/fmdrift"
   url "$base/$file"
+  # Homebrew reads "64" from "arm64" in the file name as the version, so it is stated.
+  version "$version"
   sha256 "$sum"
   license "MIT"
 
