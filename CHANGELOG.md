@@ -7,6 +7,10 @@ the suite or snapshot format; the notes say how to move.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-28
+
+The first release.
+
 ### Added
 
 - Suites in YAML or JSON: prompt, instructions, sampling, temperature, response token limit,
@@ -29,3 +33,6 @@ the suite or snapshot format; the notes say how to move.
 - Suggestions for failed and regressed cases, each linked to Apple's documentation.
 - FMDriftKit library with DocC documentation, a support-inbox example recorded on macOS 27.0.1
   (26A434), a Swift library example and a GitHub Actions example.
+
+[Unreleased]: https://github.com/muhittincamdali/fmdrift/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/muhittincamdali/fmdrift/releases/tag/v0.1.0

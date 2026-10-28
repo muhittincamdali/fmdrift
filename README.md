@@ -210,8 +210,8 @@ workflow.
 ## How it is tested
 
 - **On the real model.** [Examples/support-app](Examples/support-app) was recorded on macOS
-  27.0.1 (26A434), Mac17,6 (Apple M5 Max): 15 generations, all passing, 8.76 s for the whole run,
-  medians between 348 ms and 798 ms per answer. A test replays that snapshot through the command
+  27.0.1 (26A434), Mac17,6 (Apple M5 Max): 15 generations, all passing, 9.70 s for the whole run,
+  medians between 374 ms and 826 ms per answer. A test replays that snapshot through the command
   line on every CI run. Two more tests ask the real model for a plain and a structured answer
   when `FMDRIFT_LIVE=1` is set.
 - **What the real model taught the tests.** Ten greedy runs of the triage prompt returned the
@@ -230,7 +230,7 @@ workflow.
   record on one build, run on another, diff policies, replay, a missing model and unreadable
   files.
 
-84 tests, run by CI on macOS with Xcode 26.6 and Xcode 27.
+86 tests, run by CI on macOS with Xcode 26.6 and Xcode 27.
 
 ## Limits
 
