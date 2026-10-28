@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@ca20555a382a01893f78aa7ed23d00330f69a648 status=reviewed -->
+<!-- i18n-source: README.md@f4a2589fd7640b054cafe0fe7d23b6031a10affa status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-light.svg" alt="fmdrift: Snapshot and regression tests for prompts to Apple's on-device foundation model, compared across OS builds."></picture></p>
@@ -237,7 +237,7 @@ eksiksiz bir GitHub Actions iş akışı vardır.
   karşı çalıştırılır: bir build'de kayıt, başka bir build'de çalıştırma, diff politikaları, replay,
   eksik model ve okunamayan dosyalar dahil.
 
-116 test. Hepsi Mac (Apple silicon), macOS 27.0.1 ve Xcode 27.1 üzerinde geçiyor; CI iş akışı
+122 test. Hepsi Mac (Apple silicon), macOS 27.0.1 ve Xcode 27.1 üzerinde geçiyor; CI iş akışı
 onları Xcode 26.6 ve Xcode 27 ile çalıştırır.
 
 ## Sınırlar
