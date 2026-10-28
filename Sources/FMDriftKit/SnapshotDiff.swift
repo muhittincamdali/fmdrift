@@ -16,7 +16,7 @@ public struct SnapshotDiff: Sendable, Equatable, Codable {
         case fixed
         /// Failed in both.
         case stillFailing
-        /// Passes in both, but the most common output or the pass rate is different.
+        /// Passes in both, but the most common output, the pass rate or the agreement is different.
         case changed
         case unchanged
         /// Only in the current run.
@@ -134,7 +134,8 @@ public struct SnapshotDiff: Sendable, Equatable, Codable {
         case (true, true):
             let outputChanged = before.output != after.output
             let rateChanged = abs(before.passRate - after.passRate) > 1e-9
-            status = outputChanged || rateChanged ? .changed : .unchanged
+            let agreementChanged = abs(before.agreement - after.agreement) > 1e-9
+            status = outputChanged || rateChanged || agreementChanged ? .changed : .unchanged
         }
         let failedBefore = Set(old.samples.flatMap { $0.checks.filter { $0.status == .failed }.map(\.label) })
         var newlyFailing: [String] = []

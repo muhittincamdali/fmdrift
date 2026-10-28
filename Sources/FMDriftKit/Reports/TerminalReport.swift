@@ -139,12 +139,13 @@ public enum TerminalReport {
         lines.append("")
         let width = min(28, max(8, diff.cases.map(\.id.count).max() ?? 8))
         var unchanged = 0
+        let sameOSBuild = diff.baseline.environment.snapshotName == diff.current.environment.snapshotName
         for change in diff.cases {
             if change.status == .unchanged, !change.slower, !showUnchanged {
                 unchanged += 1
                 continue
             }
-            lines.append(contentsOf: changeLines(change, idWidth: width, style: style))
+            lines.append(contentsOf: changeLines(change, idWidth: width, sameOSBuild: sameOSBuild, style: style))
         }
         if unchanged > 0 {
             lines.append(style.dim(" UNCHANGED  \(unchanged == 1 ? "1 case" : "\(unchanged) cases")"))
@@ -178,11 +179,19 @@ public enum TerminalReport {
         return style.yellow(text)
     }
 
-    static func changeLines(_ change: SnapshotDiff.CaseChange, idWidth: Int, style: TerminalStyle) -> [String] {
+    static func changeLines(
+        _ change: SnapshotDiff.CaseChange,
+        idWidth: Int,
+        sameOSBuild: Bool,
+        style: TerminalStyle
+    ) -> [String] {
         let id = TextSafety.terminal(change.id).padding(toLength: idWidth, withPad: " ", startingAt: 0)
         var figures: [String] = []
         if let before = change.baseline, let after = change.current {
             figures.append("\(Format.percent(before.passRate)) → \(Format.percent(after.passRate)) passing")
+            if abs(before.agreement - after.agreement) > 1e-9 {
+                figures.append("agreement \(Format.percent(before.agreement)) → \(Format.percent(after.agreement))")
+            }
             if let old = before.medianLatency, let new = after.medianLatency {
                 var latency = "\(Format.duration(old)) → \(Format.duration(new))"
                 if let delta = Format.change(from: old, to: new) { latency += " (\(delta))" }
@@ -210,8 +219,9 @@ public enum TerminalReport {
             lines.append(indent + "output: " + outputDiff(before, after, style: style))
         }
         if change.status == .regressed {
-            lines.append(indent + style.blue("How to fix: ") + Advice.regression.text)
-            lines.append(indent + "  " + style.dim(Advice.regression.source.url))
+            let advice = Advice.forRegression(change, sameOSBuild: sameOSBuild)
+            lines.append(indent + style.blue("How to fix: ") + advice.text)
+            lines.append(indent + "  " + style.dim(advice.source.url))
         }
         return lines
     }
