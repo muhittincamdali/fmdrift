@@ -114,14 +114,32 @@ public enum MarkdownReport {
     }
 }
 
-/// JUnit XML, which CI systems show as test results: one test suite, one test case per case.
+/// JUnit XML, which CI systems show as test results: one test suite per suite file, one test
+/// case per case.
 public enum JUnitReport {
     public static func run(_ result: RunResult) -> String {
+        runs([result])
+    }
+
+    public static func runs(_ results: [RunResult]) -> String {
+        let tests = results.reduce(0) { $0 + $1.cases.count }
+        let failures = results.reduce(0) { $0 + $1.failedCount }
+        let time = results.reduce(0) { $0 + $1.duration }
+        var lines = [
+            #"<?xml version="1.0" encoding="UTF-8"?>"#,
+            #"<testsuites name="fmdrift" tests="\#(tests)" failures="\#(failures)" time="\#(seconds(time))">"#,
+        ]
+        for result in results {
+            lines.append(contentsOf: suite(result))
+        }
+        lines.append("</testsuites>")
+        return lines.joined(separator: "\n") + "\n"
+    }
+
+    static func suite(_ result: RunResult) -> [String] {
         let failures = result.failedCount
         let suiteName = TextSafety.xml(result.suite)
         var lines = [
-            #"<?xml version="1.0" encoding="UTF-8"?>"#,
-            #"<testsuites name="fmdrift" tests="\#(result.cases.count)" failures="\#(failures)" time="\#(seconds(result.duration))">"#,
             #"  <testsuite name="\#(suiteName)" tests="\#(result.cases.count)" failures="\#(failures)" errors="0" skipped="0" time="\#(seconds(result.duration))">"#,
             "    <properties>",
         ]
@@ -171,8 +189,7 @@ public enum JUnitReport {
             lines.append("    </testcase>")
         }
         lines.append("  </testsuite>")
-        lines.append("</testsuites>")
-        return lines.joined(separator: "\n") + "\n"
+        return lines
     }
 
     static func seconds(_ value: Double) -> String {

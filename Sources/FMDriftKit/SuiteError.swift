@@ -18,9 +18,10 @@ public struct SuiteError: Error, Equatable, CustomStringConvertible {
     }
 }
 
-enum Spelling {
-    /// The closest known word within an edit distance of 3, for "did you mean" hints.
-    static func suggestion(for word: String, from candidates: some Collection<String>) -> String? {
+/// "Did you mean" hints for misspelled keys and case ids.
+public enum Spelling {
+    /// The closest known word within an edit distance of 3.
+    public static func suggestion(for word: String, from candidates: some Collection<String>) -> String? {
         let lowered = word.lowercased()
         var best: (word: String, distance: Int)?
         for candidate in candidates {
