@@ -1,3 +1,5 @@
 # Recorded reports: "100%" here is a measured pass rate or agreement, not a claim.
 ^Fixtures/expected/
 ^docs/media/demo-[a-z]+\.txt:
+# "guided generation" is Apple's name for schema-constrained output, the feature fmdrift tests.
+generated with guided generation
