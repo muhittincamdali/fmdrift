@@ -136,7 +136,7 @@ extension Advice {
             )
         case .contextWindowExceeded:
             return Advice(
-                "Instructions, prompt, schema and response together exceed the context window (4,096 tokens for the on-device model). Shorten them or lower `maxResponseTokens`.",
+                "Instructions, prompt, schema and response together exceed the context window; `fmdrift doctor` shows its size on this Mac. Shorten them or lower `maxResponseTokens`.",
                 .contextWindow
             )
         case .unsupportedLanguageOrLocale:

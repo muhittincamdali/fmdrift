@@ -14,12 +14,12 @@ public struct TerminalStyle: Sendable {
         color ? "\u{1B}[\(code)m\(text)\u{1B}[0m" : text
     }
 
-    func bold(_ text: String) -> String { wrap(text, "1") }
-    func dim(_ text: String) -> String { wrap(text, "2") }
-    func red(_ text: String) -> String { wrap(text, "31") }
-    func green(_ text: String) -> String { wrap(text, "32") }
-    func yellow(_ text: String) -> String { wrap(text, "33") }
-    func blue(_ text: String) -> String { wrap(text, "34") }
+    public func bold(_ text: String) -> String { wrap(text, "1") }
+    public func dim(_ text: String) -> String { wrap(text, "2") }
+    public func red(_ text: String) -> String { wrap(text, "31") }
+    public func green(_ text: String) -> String { wrap(text, "32") }
+    public func yellow(_ text: String) -> String { wrap(text, "33") }
+    public func blue(_ text: String) -> String { wrap(text, "34") }
 
     /// Color when standard output is a terminal and neither `NO_COLOR` nor `TERM=dumb` is set.
     public static func detect(environment: [String: String] = ProcessInfo.processInfo.environment) -> TerminalStyle {
@@ -44,7 +44,7 @@ public enum TerminalReport {
         return lines.joined(separator: "\n") + "\n"
     }
 
-    static func header(_ result: RunResult, style: TerminalStyle) -> String {
+    public static func header(_ result: RunResult, style: TerminalStyle) -> String {
         let environment = result.environment
         var parts = [
             "fmdrift \(result.fmdriftVersion)", "suite \(TextSafety.terminal(result.suite))", environment.osLabel,
@@ -54,7 +54,7 @@ public enum TerminalReport {
         return style.bold(parts.joined(separator: " · "))
     }
 
-    static func providerLabel(_ environment: RunEnvironment) -> String {
+    public static func providerLabel(_ environment: RunEnvironment) -> String {
         switch environment.provider {
         case "system": "on-device model"
         case "replay": "replayed responses"
@@ -98,7 +98,7 @@ public enum TerminalReport {
     }
 
     /// Failed checks of a case, grouped by label, in the order they first failed.
-    static func failedChecks(_ result: CaseResult) -> [(label: String, detail: String?, count: Int)] {
+    public static func failedChecks(_ result: CaseResult) -> [(label: String, detail: String?, count: Int)] {
         var order: [String] = []
         var details: [String: String?] = [:]
         var counts: [String: Int] = [:]
@@ -154,7 +154,7 @@ public enum TerminalReport {
         return lines.joined(separator: "\n") + "\n"
     }
 
-    static func sideLabel(_ side: SnapshotDiff.Side) -> String {
+    public static func sideLabel(_ side: SnapshotDiff.Side) -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withFullDate]
         var label = side.environment.osLabel
@@ -253,7 +253,7 @@ public enum TerminalReport {
         return started ? text : ""
     }
 
-    static func diffSummary(_ diff: SnapshotDiff, style: TerminalStyle) -> String {
+    public static func diffSummary(_ diff: SnapshotDiff, style: TerminalStyle) -> String {
         var parts: [String] = []
         let regressed = diff.count(.regressed)
         parts.append(regressed > 0 ? style.red("\(regressed) regressed") : "0 regressed")
