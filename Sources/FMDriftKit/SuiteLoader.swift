@@ -55,24 +55,59 @@ public enum SuiteLoader {
         guard text.utf8.count <= maximumFileSize else {
             throw SuiteError(file: file, message: "is larger than \(maximumFileSize) bytes")
         }
+        return try onLargeStack { compose(text, file: file, defaultName: defaultName) }.get()
+    }
+
+    /// libyaml stops at this many nesting levels; Yams composes, and Swift releases, the node
+    /// tree with one chain of stack frames per level.
+    static let maximumYAMLNesting = 1000
+    /// Room for ``maximumYAMLNesting`` levels with a wide margin: a debug build needs less than
+    /// 2 MB for them, and a Swift concurrency thread has 512 KB, which 300 nested flow mappings
+    /// overflow. Pages are only committed when a deep suite touches them.
+    static let parserStackSize = 16 << 20
+
+    /// Runs `body` on a thread with a ``parserStackSize`` stack and waits for it, so the node tree
+    /// is built and freed there whatever thread calls `parse`.
+    private static func onLargeStack(_ body: @escaping @Sendable () -> Result<Suite, SuiteError>)
+        -> Result<Suite, SuiteError>
+    {
+        let box = ResultBox()
+        let finished = DispatchSemaphore(value: 0)
+        let thread = Thread {
+            box.result = body()
+            finished.signal()
+        }
+        thread.stackSize = parserStackSize
+        thread.start()
+        finished.wait()
+        guard let result = box.result else { preconditionFailure("the suite thread ended without a result") }
+        return result
+    }
+
+    private static func compose(_ text: String, file: String, defaultName: String) -> Result<Suite, SuiteError> {
         let root: Node?
         do {
             root = try Yams.compose(yaml: text)
         } catch let error as YamlError {
-            throw SuiteError(file: file, line: yamlLine(error), message: "is not valid YAML: \(yamlProblem(error))")
+            if case .parser(_, let problem, _, _) = error, problem.hasPrefix("Maximum nesting level reached") {
+                let message = "nests deeper than \(maximumYAMLNesting) levels"
+                return .failure(SuiteError(file: file, line: yamlLine(error), message: message))
+            }
+            return .failure(
+                SuiteError(file: file, line: yamlLine(error), message: "is not valid YAML: \(yamlProblem(error))"))
         } catch {
-            throw SuiteError(file: file, message: "is not valid YAML")
+            return .failure(SuiteError(file: file, message: "is not valid YAML"))
         }
         guard let root else {
-            throw SuiteError(file: file, message: "is empty; a suite needs `cases`")
+            return .failure(SuiteError(file: file, message: "is empty; a suite needs `cases`"))
         }
         let reader = NodeReader(file: file)
         do {
-            return try reader.suite(root, defaultName: defaultName)
+            return .success(try reader.suite(root, defaultName: defaultName))
         } catch let error as SuiteError {
-            throw error
+            return .failure(error)
         } catch {
-            throw SuiteError(file: file, message: "\(error)")
+            return .failure(SuiteError(file: file, message: "\(error)"))
         }
     }
 
@@ -95,4 +130,10 @@ public enum SuiteLoader {
             return "\(error)"
         }
     }
+}
+
+/// Carries the result from the parsing thread back to the caller, which waits on a semaphore
+/// until it is set.
+private final class ResultBox: @unchecked Sendable {
+    var result: Result<Suite, SuiteError>?
 }
