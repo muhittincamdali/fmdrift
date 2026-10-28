@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@ba212cdfed594cb224fe99ff85e7c53bb5f78461 status=reviewed -->
+<!-- i18n-source: README.md@ac64b25b73193784abe7b1fbd7738ac6a9609362 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-light.svg" alt="fmdrift: Snapshot and regression tests for prompts to Apple's on-device foundation model, compared across OS builds."></picture></p>
@@ -231,7 +231,7 @@ Intelligence. [fmdrift dans la CI](docs/guides/fmdrift-in-ci.md) fournit un work
   l’enregistrement sur un build, l’exécution sur un autre, les politiques de diff, replay, l’absence de modèle et
   les fichiers illisibles.
 
-97 tests. Tous passent sur un Mac (Apple silicon) sous macOS 27.0.1 avec Xcode 27.1 ; le workflow
+107 tests. Tous passent sur un Mac (Apple silicon) sous macOS 27.0.1 avec Xcode 27.1 ; le workflow
 de CI les exécute avec Xcode 26.6 et Xcode 27.
 
 ## Limites
