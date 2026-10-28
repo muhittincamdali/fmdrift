@@ -112,13 +112,24 @@ extension NodeReader {
         return scalar.string
     }
 
+    /// The texts of `contains`, `containsAny` and `notContains`. Empty text is refused: every
+    /// answer contains it, so the check would pass (or fail) without looking at the answer.
     func strings(_ node: Node, _ key: String) throws -> [String] {
         try visit(node)
-        if case .sequence(let items) = node {
-            guard !items.isEmpty else { throw error(node, "`\(key)` must not be an empty list") }
-            return try items.map { try string($0, key) }
+        let items: [Node]
+        if case .sequence(let sequence) = node {
+            guard !sequence.isEmpty else { throw error(node, "`\(key)` must not be an empty list") }
+            items = Array(sequence)
+        } else {
+            items = [node]
         }
-        return [try string(node, key)]
+        return try items.map { item in
+            let text = try string(item, key)
+            guard !text.isEmpty else {
+                throw error(item, "`\(key)` must not hold empty text, which every answer contains")
+            }
+            return text
+        }
     }
 
     func identifier(_ node: Node, _ key: String) throws -> String {
