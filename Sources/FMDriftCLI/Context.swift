@@ -62,12 +62,14 @@ public struct Context: Sendable {
         return currentDirectory.appendingPathComponent(expanded).standardizedFileURL
     }
 
-    /// Path relative to the current directory when it is inside it, for messages.
+    /// Path relative to the current directory when it is inside it, for messages. File names
+    /// come with pull requests and may hold escape sequences, so the path is escaped like the
+    /// reports; escaping twice changes nothing, so messages may escape it again.
     func display(_ url: URL) -> String {
         let base = currentDirectory.standardizedFileURL.path
         let path = url.standardizedFileURL.path
-        if path.hasPrefix(base + "/") { return String(path.dropFirst(base.count + 1)) }
-        return path
+        if path.hasPrefix(base + "/") { return TextSafety.terminal(String(path.dropFirst(base.count + 1))) }
+        return TextSafety.terminal(path)
     }
 
     /// Messages can quote suite keys, snapshot fields or model output, so they are escaped like
