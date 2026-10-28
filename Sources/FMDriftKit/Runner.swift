@@ -6,9 +6,13 @@ import Foundation
 /// sequential runs keep latency numbers comparable between snapshots.
 public struct Runner: Sendable {
     public var provider: any ModelProvider
+    /// What regular expressions may cost, across every run of this runner and of any other runner
+    /// given the same budget.
+    public var patterns: PatternBudget
 
-    public init(provider: any ModelProvider) {
+    public init(provider: any ModelProvider, patterns: PatternBudget = PatternBudget()) {
         self.provider = provider
+        self.patterns = patterns
     }
 
     /// Progress after each generation.
@@ -42,7 +46,6 @@ public struct Runner: Sendable {
         let total = counts.reduce(0, +)
         var completed = 0
         var results: [CaseResult] = []
-        let patterns = PatternBudget()
 
         for (testCase, count) in zip(selected, counts) {
             var samples: [SampleResult] = []

@@ -61,9 +61,12 @@ struct SuiteRun {
         var runs: [RunResult] = []
         var diffs: [SnapshotDiff] = []
         var failed = false
+        // One budget for every suite of the command: a folder of suites must not multiply the
+        // time and threads that patterns which backtrack may take.
+        let patterns = PatternBudget()
         for (url, suite) in loaded {
             guard let provider = providers[suite.name] else { continue }
-            var result = await run(suite, provider: provider, context: context)
+            var result = await run(suite, provider: provider, patterns: patterns, context: context)
             if let replay = provider as? ReplayProvider {
                 markChangedInputs(&result, recorded: replay.snapshot)
             }
@@ -120,7 +123,12 @@ struct SuiteRun {
         return failed ? ExitStatus.findings : ExitStatus.clean
     }
 
-    func run(_ suite: Suite, provider: any ModelProvider, context: Context) async -> RunResult {
+    func run(
+        _ suite: Suite,
+        provider: any ModelProvider,
+        patterns: PatternBudget,
+        context: Context
+    ) async -> RunResult {
         let selection = options.cases.isEmpty ? nil : Set(options.cases)
         let override = options.repeatCount
         let replay = provider as? ReplayProvider
@@ -133,7 +141,7 @@ struct SuiteRun {
         if context.showsProgress {
             onProgress = { progress.update($0) }
         }
-        let result = await Runner(provider: provider).run(
+        let result = await Runner(provider: provider, patterns: patterns).run(
             suite,
             cases: selection,
             sampleCount: sampleCount,

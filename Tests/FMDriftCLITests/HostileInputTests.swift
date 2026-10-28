@@ -87,4 +87,36 @@ struct HostileInputTests {
             #expect(!output.contains("\u{202E}"))
         }
     }
+
+    /// Ten suites in one folder, each with two patterns that backtrack, used to get a budget each:
+    /// `run` gave up on twenty matches, waited 2 s for each and left twenty threads running. One
+    /// budget now covers every suite of the command.
+    @Test func sharesTheRegularExpressionBudgetAcrossSuites() async throws {
+        let slowText = String(repeating: "e", count: 24) + "!"
+        let cli = try Harness(
+            provider: FakeProvider(
+                answers: ["slow": [Generation(text: slowText, latency: 0.1)]],
+                environmentValue: FakeProvider.environment("27.0.1", "26A434")
+            )
+        )
+        let suiteCount = 10
+        for index in 0..<suiteCount {
+            let checks = (1...2).map { "      - matches: \"^(e+)+$|cli-\(index)-\($0)\"" }
+            try cli.write(
+                "slow/s\(index).yaml",
+                "name: s\(index)\ncases:\n  - id: slow\n    prompt: p\n    expect:\n" + checks.joined(separator: "\n")
+                    + "\n"
+            )
+        }
+        let started = Date()
+        #expect(await cli.run("run", "slow") == 1)
+        let elapsed = Date().timeIntervalSince(started)
+
+        // Each give-up waits for the 2 s limit of one match.
+        #expect(elapsed < Double(PatternBudget.maximumGiveUps) * 2 + 1.5)
+        let gaveUp = cli.stdout.components(separatedBy: "— gave up on /").count - 1
+        let notTried = cli.stdout.components(separatedBy: "— did not try /").count - 1
+        #expect(gaveUp == PatternBudget.maximumGiveUps)
+        #expect(notTried == suiteCount * 2 - PatternBudget.maximumGiveUps)
+    }
 }
