@@ -1,0 +1,3 @@
+# Recorded reports: "100%" here is a measured pass rate or agreement, not a claim.
+^Fixtures/expected/
+^docs/media/demo-[a-z]+\.txt:

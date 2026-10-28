@@ -1,0 +1,22 @@
+{
+  "name": "fmdrift",
+  "repository": "muhittincamdali/fmdrift",
+  "tagline": {
+    "en": "Snapshot and regression tests for prompts to Apple's on-device foundation model, compared across OS builds."
+  },
+  "tags": {
+    "en": ["Foundation Models", "Swift CLI", "macOS 26+", "CI"]
+  },
+  "motif": "code",
+  "buttons": ["start", "docs", "guides", "examples"],
+  "links": {
+    "docs": "https://muhittincamdali.github.io/fmdrift/",
+    "guides": "docs/guides/",
+    "examples": "Examples/"
+  },
+  "docc": {
+    "targets": ["FMDriftKit"]
+  },
+  "languages": ["en", "tr", "zh-CN", "ja", "ko", "es", "de", "fr", "pt-BR", "ru"],
+  "socialTheme": "dark"
+}
