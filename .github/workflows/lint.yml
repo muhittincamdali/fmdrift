@@ -58,5 +58,5 @@ jobs:
           ruby -c "$RUNNER_TEMP/fmdrift.rb"
           grep -q "sha256 \"$sum\"" "$RUNNER_TEMP/fmdrift.rb"
           grep -q 'releases/download/v9.9.9/fmdrift-9.9.9-macos-arm64.tar.gz' "$RUNNER_TEMP/fmdrift.rb"
-          grep -q 'version "9.9.9"' "$RUNNER_TEMP/fmdrift.rb"
+          if grep -q '^  version ' "$RUNNER_TEMP/fmdrift.rb"; then exit 1; fi
           if scripts/homebrew-formula.sh 9.9.9 /dev/null 2>/dev/null; then exit 1; fi
