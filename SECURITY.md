@@ -42,8 +42,9 @@ Model answers, suites and snapshots are treated as untrusted input. Reports that
 include, for example:
 
 - an answer, case id, suite name or file name that makes the terminal, Markdown or JUnit report,
-  or JSON output read with `jq -r`, run escape sequences, render markup, reorder text through
-  bidirectional controls, or hide text with invisible characters,
+  or JSON output read with `jq -r`, run escape sequences, render markup, mention people or link
+  issues and addresses in a Markdown report posted to GitHub, reorder text through bidirectional
+  controls, or hide text with invisible characters,
 - a suite or snapshot file that crashes fmdrift, exhausts memory or the stack, or keeps it busy
   far beyond its size, despite the limits (1 MiB, 1,000 levels of nesting and 200,000 YAML nodes
   per suite, 32 MiB and 64 levels of nesting per snapshot, 2 seconds per regular expression
