@@ -230,7 +230,8 @@ workflow.
   record on one build, run on another, diff policies, replay, a missing model and unreadable
   files.
 
-86 tests, run by CI on macOS with Xcode 26.6 and Xcode 27.
+97 tests. All pass on a Mac (Apple silicon) with macOS 27.0.1 and Xcode 27.1; the CI workflow
+runs them with Xcode 26.6 and Xcode 27.
 
 ## Limits
 

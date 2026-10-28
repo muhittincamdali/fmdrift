@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@355659ddbd85705f4a1b2fe245a12f9813dad91c status=reviewed -->
+<!-- i18n-source: README.md@ba212cdfed594cb224fe99ff85e7c53bb5f78461 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/fmdrift/main/.github/brand/banner-light.svg" alt="fmdrift: Snapshot and regression tests for prompts to Apple's on-device foundation model, compared across OS builds."></picture></p>
@@ -176,7 +176,7 @@ fmdrift run --json | jq '.runs[].cases[] | select(.passed | not) | .id'
 - **不可信文本。** 模型输出可能带有终端转义序列、双向文本覆盖或标记；测试会把 OSC 52、清屏、从右到左覆盖、HTML 和 NUL 送入终端、Markdown 和 JUnit 报告。测试套件和快照读取器会拒绝过大的文件、过深的嵌套和 YAML 别名炸弹。
 - **每条命令都在进程内运行**，对象是指定了系统 build 的脚本化模型，包括在一个 build 上记录、在另一个 build 上运行、diff 策略、replay、缺少模型以及无法读取的文件。
 
-共 86 个测试，由 CI 在安装了 Xcode 26.6 和 Xcode 27 的 macOS 上运行。
+共 97 个测试，在 Mac (Apple silicon)、macOS 27.0.1、Xcode 27.1 上全部通过；CI 工作流使用 Xcode 26.6 和 Xcode 27 运行它们。
 
 ## 限制
 
