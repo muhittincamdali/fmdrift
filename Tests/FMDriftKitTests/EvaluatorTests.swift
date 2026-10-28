@@ -53,6 +53,42 @@ struct EvaluatorTests {
         #expect(status(.atMost(3), on: "four") == .failed)
     }
 
+    /// `^(a+)+$` backtracks catastrophically: Swift's Regex took over a minute on 29 characters
+    /// and cannot be cancelled. The check gives up after the time limit and fails, and the
+    /// pattern gives up at once from then on. Each test uses its own pattern for that reason.
+    @Test func givesUpOnPatternsThatBacktrackTooMuch() {
+        let text = String(repeating: "a", count: 18) + "!"
+        let detail = "gave up on /^(a+)+$/: matching took over 2.00 s, it backtracks too much; simplify it"
+        let started = Date()
+        for kind in [Assertion.Kind.matches("^(a+)+$"), .notMatches("^(a+)+$"), .matches("^(a+)+$")] {
+            let check = run(kind, on: text)[0]
+            #expect(check.status == .failed)
+            #expect(check.detail == detail)
+        }
+        // One wait for the three checks.
+        #expect(Date().timeIntervalSince(started) < 2 * PatternMatch.timeLimit)
+        #expect(status(.matches("^(b+)+$"), on: "bbbb") == .passed)
+        #expect(status(.notMatches("^(b+)+$"), on: "c") == .passed)
+    }
+
+    @Test func patternMatchesWithinItsLimit() {
+        let text = String(repeating: "c", count: 15) + "!"
+        let started = Date()
+        #expect(PatternMatch.run("^(c+)+$", in: text, limit: 0.02) == .timedOut)
+        #expect(Date().timeIntervalSince(started) < 1)
+        // Even on a text it would match at once.
+        #expect(PatternMatch.run("^(c+)+$", in: "c") == .timedOut)
+        #expect(PatternMatch.run(#"^\d{4}$"#, in: "2026") == .matched)
+        #expect(PatternMatch.run(#"^\d{4}$"#, in: "year 2026") == .notMatched)
+        #expect(PatternMatch.run("(", in: "(") == .notMatched)
+    }
+
+    @Test func schemaPatternsHaveTheSameLimit() {
+        let schema = JSONSchema.string(enumValues: nil, pattern: "^(d+)+$", description: nil)
+        let problems = SchemaValidator.problems(in: .string(String(repeating: "d", count: 18) + "!"), against: schema)
+        #expect(problems == ["$: gave up on /^(d+)+$/: matching took over 2.00 s, it backtracks too much; simplify it"])
+    }
+
     @Test func failureDetailsSayWhatWasFound() {
         #expect(
             run(.contains(["Paris", "France"]), on: "It is Paris.")[0].detail == #"missing "France" in "It is Paris.""#)

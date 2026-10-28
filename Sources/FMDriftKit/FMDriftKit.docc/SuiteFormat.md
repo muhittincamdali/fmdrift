@@ -64,8 +64,8 @@ Each entry of `expect` has exactly one check. `path` and `ignoreCase` modify it.
 | `notContains: text` or `[a, b]` | none appears                                                                             |
 | `equals: value`                 | the answer, trimmed, equals the value; with `path`, the JSON value at the path equals it |
 | `oneOf: [a, b]`                 | as `equals`, for any of the values                                                       |
-| `matches: regex`                | the regular expression matches somewhere                                                 |
-| `notMatches: regex`             | it matches nowhere                                                                       |
+| `matches: regex`                | the regular expression matches somewhere; fails if matching takes over 2 s               |
+| `notMatches: regex`             | it matches nowhere; fails if matching takes over 2 s                                     |
 | `minLength: n`, `maxLength: n`  | characters of the text; items when `path` points at an array                             |
 | `atLeast: n`, `atMost: n`       | the number (at `path`, or the whole answer) is within the bound                          |
 | `maxLatency: 2s`                | the answer arrived in time: `800ms`, `1.5s`, or a number of seconds; at most `3600s`     |

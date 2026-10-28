@@ -43,8 +43,12 @@ public enum SchemaValidator {
                 let allowed = enumValues.map { "\"\($0)\"" }.joined(separator: ", ")
                 problems.append("\(path): \"\(Excerpt.of(text))\" is not one of \(allowed)")
             }
-            if let pattern, let regex = try? Regex(pattern), (try? regex.firstMatch(in: text)) == nil {
-                problems.append("\(path): \"\(Excerpt.of(text))\" does not match /\(pattern)/")
+            if let pattern {
+                switch PatternMatch.run(pattern, in: text) {
+                case .matched: break
+                case .notMatched: problems.append("\(path): \"\(Excerpt.of(text))\" does not match /\(pattern)/")
+                case .timedOut: problems.append("\(path): \(PatternMatch.timedOutDetail(pattern))")
+                }
             }
         case .integer(let minimum, let maximum, _):
             guard case .number(let number) = value, number.rounded() == number else {
