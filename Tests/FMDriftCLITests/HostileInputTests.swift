@@ -26,6 +26,29 @@ struct HostileInputTests {
         #expect(cli.stderr.contains("fmdrift/deep.yaml:4: nests deeper than"))
     }
 
+    /// A latency of 1e300 in a snapshot made `diff --all`, `diff --markdown` and `run --replay`
+    /// trap converting it to Int (exit status 133). Each command now refuses the file.
+    @Test func refusesSnapshotsWithOutOfRangeNumbers() async throws {
+        let cli = try harness()
+        #expect(await cli.run("record") == 0)
+        let path = "fmdrift-snapshots/support/macOS-27.0.1-26A434.json"
+        let recorded = try cli.read(path)
+        #expect(recorded.contains(#""latency" : 0.3"#))
+        try cli.write("huge.json", recorded.replacingOccurrences(of: #""latency" : 0.3"#, with: #""latency" : 1e300"#))
+        let refusal =
+            "error: huge.json: is not a valid snapshot (unexpected value at $.cases[0].samples[0].generation.latency)\n"
+        for arguments in [
+            ["diff", "huge.json", path, "--all"],
+            ["diff", path, "huge.json", "--markdown", "diff.md"],
+            ["run", "--replay", "huge.json"],
+            ["run", "--baseline", "huge.json"],
+        ] {
+            #expect(await cli.run(arguments) == 2)
+            #expect(cli.stderr == refusal)
+        }
+        #expect(!cli.exists("diff.md"))
+    }
+
     /// A file added to fmdrift/ by a pull request names itself in `validate` and `run` output,
     /// which CI logs show and terminals interpret.
     @Test func escapesFileNamesInMessages() async throws {
