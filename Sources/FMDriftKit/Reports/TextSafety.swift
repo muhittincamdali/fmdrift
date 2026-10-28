@@ -47,15 +47,28 @@ public enum TextSafety {
 
     /// Text for a Markdown table cell or paragraph: hidden characters escaped as in the
     /// terminal, HTML and Markdown syntax neutralised, pipes escaped.
+    ///
+    /// A report is often posted as a pull request comment, where GitHub turns `@name` into a
+    /// mention that notifies that account, `#12` into a link that shows up on issue 12, and bare
+    /// `https://…` and `www.…` addresses into links. A backslash does not stop mentions and
+    /// issue links, which GitHub finds in the rendered text, so `@` and `#` are followed by a
+    /// zero-width space (`&#8203;`). The `:` of `://` and the `.` after `www` are
+    /// backslash-escaped, which shows the same text without a link.
     public static func markdown(_ text: String) -> String {
         var output = ""
-        for character in terminal(text) {
+        let characters = Array(terminal(text))
+        for (index, character) in characters.enumerated() {
             switch character {
             case "&": output += "&amp;"
             case "<": output += "&lt;"
             case ">": output += "&gt;"
             case "|": output += "\\|"
-            case "\\", "`", "*", "_", "[", "]", "#", "~", "!": output += "\\\(character)"
+            case "@", "#": output += "\(character)&#8203;"
+            case "\\", "`", "*", "_", "[", "]", "~", "!": output += "\\\(character)"
+            case ":" where characters[(index + 1)...].starts(with: "//"):
+                output += "\\:"
+            case "." where index >= 3 && String(characters[(index - 3)..<index]).lowercased() == "www":
+                output += "\\."
             default: output.append(character)
             }
         }

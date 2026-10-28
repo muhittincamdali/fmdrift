@@ -221,6 +221,22 @@ struct TextSafetyTests {
         #expect(!safe.contains("\u{1B}"))
     }
 
+    /// GitHub renders these as a mention, an issue link, an email link and two web links in a
+    /// pull request comment; the escaped text renders as plain text (checked with GitHub's
+    /// Markdown API, mode `gfm`).
+    @Test func markdownStopsMentionsIssueLinksAndBareAddresses() {
+        let text = "ask @octocat, see #12, mail a@b.example, https://evil.example/p or WWW.evil.example"
+        #expect(
+            TextSafety.markdown(text) == """
+                ask @&#8203;octocat, see #&#8203;12, mail a@&#8203;b.example, https\\://evil.example/p or \
+                WWW\\.evil.example
+                """
+        )
+        // An ATX heading needs a space after its `#` signs.
+        #expect(TextSafety.markdown("# title") == "#&#8203; title")
+        #expect(TextSafety.markdown("time: 12:30, a.b") == "time: 12:30, a.b")
+    }
+
     @Test func xmlEscapesMarkupAndInvalidCharacters() throws {
         let safe = TextSafety.xml(hostile)
         #expect(!safe.contains("<"))
