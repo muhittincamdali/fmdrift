@@ -70,12 +70,14 @@ public struct Context: Sendable {
         return path
     }
 
+    /// Messages can quote suite keys, snapshot fields or model output, so they are escaped like
+    /// the reports.
     func error(_ message: String) {
-        writeError(style.red("error: ") + message + "\n")
+        writeError(style.red("error: ") + TextSafety.terminal(message) + "\n")
     }
 
     func notice(_ message: String) {
-        writeError(style.yellow("note: ") + message + "\n")
+        writeError(style.yellow("note: ") + TextSafety.terminal(message) + "\n")
     }
 
     /// Writes a report file; returns false (after saying why) when it cannot.

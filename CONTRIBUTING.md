@@ -20,7 +20,8 @@ swift test
 
 The tests need neither the network nor the on-device model: a scripted provider stands in for
 the model, and the support-app snapshot recorded on a real Mac is replayed. CI runs them with
-Xcode 26.6 (`ci.yml`) and Xcode 27 (`xcode27.yml`).
+Xcode 26.6 (`ci.yml`, `examples.yml`) and Xcode 27 (`examples.yml`, on the `xcode-27` preview
+image), and lints with `lint.yml`.
 
 | Command | What it does |
 | --- | --- |

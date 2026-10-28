@@ -1,0 +1,80 @@
+name: Examples
+
+# Runs the built command the way a reader would, on a runner without Apple Intelligence (GitHub's
+# macOS runners are virtual machines): the support-app suite validates, its recorded answers pass
+# with --replay, a missing model gives exit status 2 (0 with --allow-unavailable), and the
+# PromptGate library example builds and passes on the snapshot. Runs with Xcode 26.6
+# (macos-26) and Xcode 27 (the xcode-27 preview image), which compile different SDK paths.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: examples-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  examples:
+    name: Examples on ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-26, xcode-27]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+          sw_vers
+
+      - name: Build and test
+        run: |
+          swift build --build-tests
+          swift test --skip-build --parallel
+
+      - name: Build the command
+        run: swift build -c release --product fmdrift
+
+      - name: Validate and replay the support-app example
+        working-directory: Examples/support-app
+        run: |
+          fmdrift=../../.build/release/fmdrift
+          "$fmdrift" --version
+          "$fmdrift" validate
+          "$fmdrift" run --replay fmdrift-snapshots --junit "$RUNNER_TEMP/junit.xml" --markdown "$GITHUB_STEP_SUMMARY"
+          grep -q 'tests="5" failures="0"' "$RUNNER_TEMP/junit.xml"
+
+      - name: Exit statuses without a model
+        working-directory: Examples/support-app
+        run: |
+          fmdrift=../../.build/release/fmdrift
+          "$fmdrift" doctor || echo "doctor exit $?"
+          if "$fmdrift" doctor > /dev/null; then
+            echo "::notice::This runner reports an available on-device model; skipping the no-model checks."
+            exit 0
+          fi
+          set +e
+          "$fmdrift" run; status=$?
+          set -e
+          test "$status" -eq 2 || { echo "::error::run without a model exited $status, expected 2"; exit 1; }
+          "$fmdrift" run --allow-unavailable
+
+      - name: Build and run the library example
+        working-directory: Examples/LibraryUsage
+        run: |
+          swift build
+          swift run PromptGate ../support-app/fmdrift/support.yaml \
+            ../support-app/fmdrift-snapshots/support/macOS-27.0.1-26A434.json

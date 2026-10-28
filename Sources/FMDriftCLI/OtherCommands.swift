@@ -104,7 +104,7 @@ struct ValidateCommand: ContextCommand {
                 invalid += 1
                 context.write(
                     context.style.red("invalid")
-                        + "  \(context.display(url))\(error.line.map { ":\($0)" } ?? ""): \(error.message)\n"
+                        + "  \(context.display(url))\(error.line.map { ":\($0)" } ?? ""): \(TextSafety.terminal(error.message))\n"
                 )
             }
         }
@@ -171,7 +171,7 @@ struct DoctorCommand: ContextCommand {
             let style = context.style
             var lines = [
                 style.bold("fmdrift \(FMDrift.version)"),
-                "  OS              \(environment.osLabel)",
+                "  OS              \(TextSafety.terminal(environment.osLabel))",
                 "  Snapshot name   \(environment.snapshotName).json",
             ]
             if !environment.chip.isEmpty { lines.append("  Chip            \(TextSafety.terminal(environment.chip))") }

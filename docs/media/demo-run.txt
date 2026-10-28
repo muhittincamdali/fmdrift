@@ -1,9 +1,9 @@
-fmdrift 0.1.0-dev · suite support · macOS 27.0.1 (26A434) · Apple M5 Max · on-device model
+fmdrift 0.1.0 · suite support · macOS 27.0.1 (26A434) · Apple M5 Max · on-device model
 
- PASS  ticket-summary     3/3   agreement 100%   median 610 ms
- PASS  ticket-triage      3/3   agreement 33%   median 497 ms
- PASS  reply-in-spanish   3/3   agreement 100%   median 479 ms
- PASS  feedback-topics    3/3   agreement 100%   median 795 ms
- PASS  off-topic-request  3/3   agreement 100%   median 368 ms
+ PASS  ticket-summary     3/3   agreement 100%   median 649 ms
+ PASS  ticket-triage      3/3   agreement 100%   median 536 ms
+ PASS  reply-in-spanish   3/3   agreement 100%   median 560 ms
+ PASS  feedback-topics    3/3   agreement 100%   median 860 ms
+ PASS  off-topic-request  3/3   agreement 100%   median 449 ms
 
-5 cases · 5 passed · 0 failed · 15 generations in 8.86 s
+5 cases · 5 passed · 0 failed · 15 generations in 9.79 s

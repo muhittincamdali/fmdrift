@@ -49,7 +49,8 @@ public enum TerminalReport {
     public static func header(_ result: RunResult, style: TerminalStyle) -> String {
         let environment = result.environment
         var parts = [
-            "fmdrift \(result.fmdriftVersion)", "suite \(TextSafety.terminal(result.suite))", environment.osLabel,
+            "fmdrift \(TextSafety.terminal(result.fmdriftVersion))", "suite \(TextSafety.terminal(result.suite))",
+            TextSafety.terminal(environment.osLabel),
         ]
         if !environment.chip.isEmpty { parts.append(TextSafety.terminal(environment.chip)) }
         parts.append(providerLabel(environment))
@@ -160,7 +161,7 @@ public enum TerminalReport {
     public static func sideLabel(_ side: SnapshotDiff.Side) -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withFullDate]
-        var label = side.environment.osLabel
+        var label = TextSafety.terminal(side.environment.osLabel)
         if !side.environment.chip.isEmpty { label += " · \(TextSafety.terminal(side.environment.chip))" }
         label += " · recorded \(formatter.string(from: side.recordedAt))"
         if side.environment.provider != "system" { label += " · \(providerLabel(side.environment))" }
