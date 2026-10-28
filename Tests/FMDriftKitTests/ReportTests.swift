@@ -229,6 +229,21 @@ struct TextSafetyTests {
         #expect(document.rootElement()?.attribute(forName: "b")?.stringValue?.contains("<b>x</b>") == true)
     }
 
+    /// Characters that print as nothing, or break a line in some log viewers.
+    @Test(arguments: [
+        0x2028, 0x2029, 0x00AD, 0x180E, 0x2061, 0x2064, 0x206A, 0x206F, 0xFFF9, 0xFFFB, 0xE0000, 0xE0001,
+        0xE0041, 0xE007F,
+    ])
+    func escapesInvisibleCharacters(value: UInt32) throws {
+        let scalar = try #require(Unicode.Scalar(value))
+        let text = "a\(Character(scalar))b"
+        let escape = "\\u{\(String(value, radix: 16, uppercase: true))}"
+        #expect(TextSafety.terminal(text) == "a\(escape)b")
+        #expect(TextSafety.xml(text) == "a\(escape)b")
+        // Markdown escapes the backslash of the escape too.
+        #expect(TextSafety.markdown(text) == "a\\\(escape)b")
+    }
+
     @Test func reportsEscapeHostileSnapshotFields() {
         // A snapshot arrives with a pull request; every string in it is untrusted.
         var run = SampleRuns.current

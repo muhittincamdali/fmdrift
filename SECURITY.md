@@ -41,8 +41,9 @@ network requests of its own and runs no code from a suite or snapshot.
 Model answers, suites and snapshots are treated as untrusted input. Reports that fit this policy
 include, for example:
 
-- an answer, case id or suite name that makes the terminal, Markdown or JUnit report run escape
-  sequences, render markup, or reorder text through bidirectional controls,
+- an answer, case id, suite name or file name that makes the terminal, Markdown or JUnit report
+  run escape sequences, render markup, reorder text through bidirectional controls, or hide
+  text with invisible characters,
 - a suite or snapshot file that crashes fmdrift, exhausts memory or the stack, or keeps it busy
   far beyond its size, despite the limits (1 MiB and 200,000 YAML nodes per suite, 32 MiB and 64
   levels of nesting per snapshot),
