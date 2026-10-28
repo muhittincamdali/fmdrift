@@ -151,6 +151,20 @@ struct SnapshotStoreTests {
         }
     }
 
+    /// Diffs match cases by id; a file written twice into one used to compare as "10 unchanged".
+    @Test func refusesRepeatedCaseIDs() throws {
+        let cases = ["a", "b", "a"].map { Make.result(Make.testCase($0), outputs: ["ok"]) }
+        let data = SnapshotStore.encode(Make.run(cases, environment: Make.environment27))
+        #expect(
+            throws: SnapshotError(
+                path: "s.json",
+                message: "is not a valid snapshot (case id `a` at $.cases[2] is already used at $.cases[0])"
+            )
+        ) {
+            try SnapshotStore.decode(data, path: "s.json")
+        }
+    }
+
     /// The bounds themselves are accepted, and reports of such a snapshot do not trap.
     @Test func acceptsNumbersAtTheBounds() throws {
         var text = Self.validSnapshot.replacingOccurrences(of: #""latency" : 0.5"#, with: #""latency" : 86400"#)

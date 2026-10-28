@@ -21,7 +21,8 @@ dates, so that it reads well in a git diff. `fmdrift record` writes one per suit
 | `cases[].samples[].checks`                             | Each check with `passed`, `failed` or `skipped` and what was found                                                         |
 | `cases[].passCount`, `passRate`, `passed`, `agreement` | Derived from the samples; recomputed when the file is read                                                                 |
 
-Files larger than 32 MiB or nested deeper than 64 levels are refused before decoding.
+Files larger than 32 MiB or nested deeper than 64 levels are refused before decoding. Cases are
+matched by id, so a snapshot that uses a case id twice is refused too.
 
 ## Statuses
 

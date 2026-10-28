@@ -71,11 +71,29 @@ public enum SnapshotStore {
         }
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
+        let result: RunResult
         do {
-            return try decoder.decode(RunResult.self, from: data)
+            result = try decoder.decode(RunResult.self, from: data)
         } catch {
             throw SnapshotError(path: path, message: "is not a valid snapshot (\(describe(error)))")
         }
+        if let problem = repeatedCaseID(in: result) {
+            throw SnapshotError(path: path, message: "is not a valid snapshot (\(problem))")
+        }
+        return result
+    }
+
+    /// Cases are matched by id. A snapshot that repeats an id, such as a file written twice into
+    /// one, would be compared case by case against the wrong entries; suites refuse it too.
+    private static func repeatedCaseID(in result: RunResult) -> String? {
+        var firstIndex: [String: Int] = [:]
+        for (index, testCase) in result.cases.enumerated() {
+            if let first = firstIndex[testCase.id] {
+                return "case id `\(Excerpt.of(testCase.id))` at $.cases[\(index)] is already used at $.cases[\(first)]"
+            }
+            firstIndex[testCase.id] = index
+        }
+        return nil
     }
 
     private static func describe(_ error: any Error) -> String {
