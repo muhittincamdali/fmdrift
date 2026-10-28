@@ -68,7 +68,7 @@ Each entry of `expect` has exactly one check. `path` and `ignoreCase` modify it.
 | `notMatches: regex`             | it matches nowhere                                                                       |
 | `minLength: n`, `maxLength: n`  | characters of the text; items when `path` points at an array                             |
 | `atLeast: n`, `atMost: n`       | the number (at `path`, or the whole answer) is within the bound                          |
-| `maxLatency: 2s`                | the answer arrived within the time: `800ms`, `1.5s`, or a number of seconds              |
+| `maxLatency: 2s`                | the answer arrived in time: `800ms`, `1.5s`, or a number of seconds; at most `3600s`     |
 | `maxOutputTokens: n`            | the answer has at most n tokens; skipped when the OS cannot count them                   |
 | `refusal: true`                 | the model declined with a `guardrailViolation` or `refusal` error                        |
 | `refusal: false`                | the model answered                                                                       |

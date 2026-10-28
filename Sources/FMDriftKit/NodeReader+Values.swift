@@ -176,7 +176,8 @@ extension NodeReader {
         return value
     }
 
-    /// `2`, `2.5s`, `800ms`: seconds unless a unit is given.
+    /// `2`, `2.5s`, `800ms`: seconds unless a unit is given; at most ``Generation/maximumWait``,
+    /// the longest `--timeout`, since a generation never waits longer.
     func duration(_ node: Node, _ key: String) throws -> Double {
         let text = try string(node, key).trimmingCharacters(in: .whitespaces).lowercased()
         var number = text
@@ -190,7 +191,12 @@ extension NodeReader {
         guard let value = Double(number.trimmingCharacters(in: .whitespaces)), value.isFinite, value > 0 else {
             throw error(node, "`\(key)` must be a duration such as 2s, 1.5s or 800ms")
         }
-        return value * scale
+        let seconds = value * scale
+        guard seconds <= Generation.maximumWait else {
+            throw error(
+                node, "`\(key)` must be at most \(Format.number(Generation.maximumWait))s, the longest --timeout")
+        }
+        return seconds
     }
 
     func pattern(_ node: Node, _ key: String) throws -> String {

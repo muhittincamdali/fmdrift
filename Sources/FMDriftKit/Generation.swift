@@ -29,6 +29,43 @@ public struct Generation: Sendable, Equatable, Codable {
     public static func failed(_ kind: GenerationFailure.Kind, _ message: String, latency: Double) -> Generation {
         Generation(text: nil, latency: latency, failure: GenerationFailure(kind: kind, message: message))
     }
+
+    /// The longest a generation may wait for the model: the upper bound of `--timeout` and of a
+    /// suite's `maxLatency`.
+    public static let maximumWait: Double = 3600
+
+    /// Snapshots with a longer recorded latency are refused. A day leaves room above
+    /// ``maximumWait`` for a timed-out generation that returned late.
+    public static let maximumRecordedLatency: Double = 86_400
+
+    /// Snapshots are untrusted, so the numbers are checked: a latency of 1e300 has no meaning
+    /// and only reaches the reports' arithmetic.
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let latency = try container.decode(Double.self, forKey: .latency)
+        guard latency.isFinite, latency >= 0, latency <= Self.maximumRecordedLatency else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .latency,
+                in: container,
+                debugDescription: "latency must be between 0 and \(Self.maximumRecordedLatency) seconds"
+            )
+        }
+        let outputTokens = try container.decodeIfPresent(Int.self, forKey: .outputTokens)
+        let inputTokens = try container.decodeIfPresent(Int.self, forKey: .inputTokens)
+        for (key, tokens) in [(CodingKeys.outputTokens, outputTokens), (.inputTokens, inputTokens)] {
+            guard (tokens ?? 0) >= 0 else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: key, in: container, debugDescription: "token counts cannot be negative")
+            }
+        }
+        self.init(
+            text: try container.decodeIfPresent(String.self, forKey: .text),
+            latency: latency,
+            outputTokens: outputTokens,
+            inputTokens: inputTokens,
+            failure: try container.decodeIfPresent(GenerationFailure.self, forKey: .failure)
+        )
+    }
 }
 
 /// Why the model did not answer, mapped from the framework's error types.

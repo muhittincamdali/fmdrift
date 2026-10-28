@@ -26,6 +26,43 @@ struct HostileInputTests {
         #expect(cli.stderr.contains("fmdrift/deep.yaml:4: nests deeper than"))
     }
 
+    /// A latency of 1e300 in a snapshot made `diff --all`, `diff --markdown` and `run --replay`
+    /// trap converting it to Int (exit status 133). Each command now refuses the file.
+    @Test func refusesSnapshotsWithOutOfRangeNumbers() async throws {
+        let cli = try harness()
+        #expect(await cli.run("record") == 0)
+        let path = "fmdrift-snapshots/support/macOS-27.0.1-26A434.json"
+        let recorded = try cli.read(path)
+        #expect(recorded.contains(#""latency" : 0.3"#))
+        try cli.write("huge.json", recorded.replacingOccurrences(of: #""latency" : 0.3"#, with: #""latency" : 1e300"#))
+        let refusal =
+            "error: huge.json: is not a valid snapshot (unexpected value at $.cases[0].samples[0].generation.latency)\n"
+        for arguments in [
+            ["diff", "huge.json", path, "--all"],
+            ["diff", path, "huge.json", "--markdown", "diff.md"],
+            ["run", "--replay", "huge.json"],
+            ["run", "--baseline", "huge.json"],
+        ] {
+            #expect(await cli.run(arguments) == 2)
+            #expect(cli.stderr == refusal)
+        }
+        #expect(!cli.exists("diff.md"))
+    }
+
+    /// `maxLatency: 1e308s` passed `validate` and then trapped in `run` while formatting the
+    /// check's label. Both commands now refuse it.
+    @Test func refusesLatencyLimitsBeyondTheLongestTimeout() async throws {
+        let cli = try harness()
+        try cli.write(
+            "fmdrift/slow.yaml",
+            "name: slow\ncases:\n  - id: a\n    prompt: hi\n    expect:\n      - maxLatency: 1e308s\n")
+        let refusal = "fmdrift/slow.yaml:6: `maxLatency` must be at most 3600s, the longest --timeout"
+        #expect(await cli.run("validate", "fmdrift") == 1)
+        #expect(cli.stdout == "invalid  \(refusal)\n")
+        #expect(await cli.run("run", "fmdrift") == 2)
+        #expect(cli.stderr == "error: \(refusal)\n")
+    }
+
     /// A file added to fmdrift/ by a pull request names itself in `validate` and `run` output,
     /// which CI logs show and terminals interpret.
     @Test func escapesFileNamesInMessages() async throws {

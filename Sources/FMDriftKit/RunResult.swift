@@ -32,6 +32,39 @@ public struct RunResult: Sendable, Equatable, Codable {
         self.cases = cases
     }
 
+    /// Snapshots with a longer run are refused: a year is far beyond any real run.
+    public static let maximumDuration: Double = 365 * 86_400
+
+    enum CodingKeys: String, CodingKey {
+        case format, fmdriftVersion, suite, recordedAt, duration, environment, cases
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // Decoded in the order of the stored properties, so a missing key is reported as before.
+        let format = try container.decode(Int.self, forKey: .format)
+        let fmdriftVersion = try container.decode(String.self, forKey: .fmdriftVersion)
+        let suite = try container.decode(String.self, forKey: .suite)
+        let recordedAt = try container.decode(Date.self, forKey: .recordedAt)
+        let duration = try container.decode(Double.self, forKey: .duration)
+        guard duration.isFinite, duration >= 0, duration <= Self.maximumDuration else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .duration,
+                in: container,
+                debugDescription: "duration must be between 0 and \(Self.maximumDuration) seconds"
+            )
+        }
+        self.init(
+            suite: suite,
+            recordedAt: recordedAt,
+            duration: duration,
+            environment: try container.decode(RunEnvironment.self, forKey: .environment),
+            cases: try container.decode([CaseResult].self, forKey: .cases),
+            fmdriftVersion: fmdriftVersion,
+            format: format
+        )
+    }
+
     public var passed: Bool { cases.allSatisfy(\.passed) }
     public var passedCount: Int { cases.filter(\.passed).count }
     public var failedCount: Int { cases.count - passedCount }
@@ -91,13 +124,23 @@ public struct CaseResult: Sendable, Equatable, Codable {
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        let id = try container.decode(String.self, forKey: .id)
+        let prompt = try container.decode(String.self, forKey: .prompt)
+        let fingerprint = try container.decode(String.self, forKey: .fingerprint)
+        let settings = try container.decode(GenerationSettings.self, forKey: .settings)
+        let schema = try container.decodeIfPresent(JSONValue.self, forKey: .schema)
+        let minPassRate = try container.decode(Double.self, forKey: .minPassRate)
+        guard minPassRate >= 0, minPassRate <= 1 else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .minPassRate, in: container, debugDescription: "minPassRate must be between 0 and 1")
+        }
         self.init(
-            id: try container.decode(String.self, forKey: .id),
-            prompt: try container.decode(String.self, forKey: .prompt),
-            fingerprint: try container.decode(String.self, forKey: .fingerprint),
-            settings: try container.decode(GenerationSettings.self, forKey: .settings),
-            schema: try container.decodeIfPresent(JSONValue.self, forKey: .schema),
-            minPassRate: try container.decode(Double.self, forKey: .minPassRate),
+            id: id,
+            prompt: prompt,
+            fingerprint: fingerprint,
+            settings: settings,
+            schema: schema,
+            minPassRate: minPassRate,
             samples: try container.decode([SampleResult].self, forKey: .samples),
             notes: try container.decodeIfPresent([String].self, forKey: .notes) ?? []
         )

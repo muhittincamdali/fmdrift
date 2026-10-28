@@ -14,16 +14,20 @@ public enum Format {
         return text
     }
 
-    /// `850 ms` below a second, `1.24 s` from one second, `2 min 5 s` from a minute.
+    /// `850 ms` below a second, `1.24 s` from one second, `2 min 5 s` from a minute. `–` for a
+    /// value that is not a duration (negative, infinite or NaN).
     public static func duration(_ seconds: Double) -> String {
+        // Snapshots and suites are untrusted; converting 1e300 to Int would trap.
+        guard seconds.isFinite, seconds >= 0 else { return "–" }
         if seconds < 1 {
             return "\(Int((seconds * 1000).rounded())) ms"
         }
         if seconds < 60 {
             return String(format: "%.2f s", locale: Locale(identifier: "en_US_POSIX"), seconds)
         }
-        let total = Int(seconds.rounded())
-        return "\(total / 60) min \(total % 60) s"
+        let total = seconds.rounded()
+        let minutes = (total / 60).rounded(.down)
+        return "\(number(minutes)) min \(number(total - minutes * 60)) s"
     }
 
     /// `1 case`, `0 cases`, `2 cases`.
@@ -33,14 +37,21 @@ public enum Format {
 
     /// `100%`, `67%`: whole percent, rounded half up.
     public static func percent(_ share: Double) -> String {
-        "\(Int((share * 100).rounded()))%"
+        "\(number((share * 100).rounded()))%"
     }
 
-    /// `+12%` / `-8%` / `±0%` change from `old` to `new`; nil when `old` is zero.
+    /// Changes beyond this many percent read as `>+999999%`, so that a tiny baseline latency
+    /// does not print a 300-digit number.
+    static let largestChange = 999_999.0
+
+    /// `+12%` / `-8%` / `±0%` change from `old` to `new`; nil when `old` is zero or either
+    /// value is not finite.
     public static func change(from old: Double, to new: Double) -> String? {
-        guard old > 0 else { return nil }
-        let percent = Int(((new - old) / old * 100).rounded())
+        guard old > 0, old.isFinite, new.isFinite else { return nil }
+        let percent = ((new - old) / old * 100).rounded()
+        if percent > largestChange { return ">+\(number(largestChange))%" }
+        if percent < -largestChange { return "<-\(number(largestChange))%" }
         if percent == 0 { return "±0%" }
-        return percent > 0 ? "+\(percent)%" : "\(percent)%"
+        return percent > 0 ? "+\(number(percent))%" : "\(number(percent))%"
     }
 }

@@ -122,6 +122,48 @@ struct SnapshotStoreTests {
             #expect(error.message.hasPrefix("cannot be read"))
         }
     }
+
+    static let validSnapshot = String(
+        decoding: SnapshotStore.encode(
+            Make.run([Make.result(Make.testCase("a"), outputs: ["ok"])], environment: Make.environment27)),
+        as: UTF8.self
+    )
+
+    /// Numbers that once reached the reports' Int conversions and trapped, or that have no
+    /// meaning: each edit of a valid snapshot must be refused with the place it is at.
+    @Test(arguments: [
+        (#""latency" : 0.5"#, #""latency" : 1e300"#, "$.cases[0].samples[0].generation.latency"),
+        (#""latency" : 0.5"#, #""latency" : 86400.5"#, "$.cases[0].samples[0].generation.latency"),
+        (#""latency" : 0.5"#, #""latency" : -1"#, "$.cases[0].samples[0].generation.latency"),
+        (#""outputTokens" : 1"#, #""outputTokens" : -3"#, "$.cases[0].samples[0].generation.outputTokens"),
+        (#""duration" : 3.25"#, #""duration" : 1e300"#, "$.duration"),
+        (#""duration" : 3.25"#, #""duration" : -0.1"#, "$.duration"),
+        (#""minPassRate" : 1"#, #""minPassRate" : 1e300"#, "$.cases[0].minPassRate"),
+        (#""minPassRate" : 1"#, #""minPassRate" : -0.5"#, "$.cases[0].minPassRate"),
+    ])
+    func refusesNumbersOutOfRange(original: String, edited: String, location: String) {
+        #expect(Self.validSnapshot.contains(original))
+        let data = Data(Self.validSnapshot.replacingOccurrences(of: original, with: edited).utf8)
+        #expect(
+            throws: SnapshotError(path: "s.json", message: "is not a valid snapshot (unexpected value at \(location))")
+        ) {
+            try SnapshotStore.decode(data, path: "s.json")
+        }
+    }
+
+    /// The bounds themselves are accepted, and reports of such a snapshot do not trap.
+    @Test func acceptsNumbersAtTheBounds() throws {
+        var text = Self.validSnapshot.replacingOccurrences(of: #""latency" : 0.5"#, with: #""latency" : 86400"#)
+        text = text.replacingOccurrences(of: #""duration" : 3.25"#, with: #""duration" : 31536000"#)
+        let current = try SnapshotStore.decode(Data(text.utf8), path: "s.json")
+        #expect(current.cases[0].samples[0].generation.latency == 86_400)
+        let tiny = Self.validSnapshot.replacingOccurrences(of: #""latency" : 0.5"#, with: #""latency" : 1e-300"#)
+        let baseline = try SnapshotStore.decode(Data(tiny.utf8), path: "s.json")
+        let diff = SnapshotDiff(baseline: baseline, current: current, latencyIncrease: 0.5)
+        #expect(TerminalReport.diff(diff, style: .plain, showUnchanged: true).contains("(>+999999%)"))
+        #expect(MarkdownReport.diff(diff).contains("1440 min 0 s"))
+        #expect(TerminalReport.run(current, style: .plain).contains("525600 min 0 s"))
+    }
 }
 
 @Suite("Snapshot diffs")

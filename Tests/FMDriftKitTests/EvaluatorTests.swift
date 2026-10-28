@@ -185,4 +185,22 @@ struct AssertionLabelTests {
         #expect(Format.change(from: 100, to: 80) == "-20%")
         #expect(Format.change(from: 0, to: 80) == nil)
     }
+
+    /// Snapshots are untrusted: a latency of 1e300 once trapped converting to Int.
+    @Test func formatOutOfRangeValuesWithoutTrapping() {
+        #expect(Format.duration(1e300).hasSuffix(" s"))
+        #expect(Format.duration(1e15) == "16666666666666 min 40 s")
+        #expect(Format.duration(.infinity) == "–")
+        #expect(Format.duration(.nan) == "–")
+        #expect(Format.duration(-1e300) == "–")
+        #expect(Format.duration(3600) == "60 min 0 s")
+        #expect(Format.percent(1e300).hasSuffix("%"))
+        #expect(Format.percent(-1e300).hasSuffix("%"))
+        #expect(Format.change(from: 1e-300, to: 3) == ">+999999%")
+        #expect(Format.change(from: 0.5, to: 1e300) == ">+999999%")
+        #expect(Format.change(from: 5e-324, to: 1) == ">+999999%")
+        #expect(Format.change(from: 1, to: .infinity) == nil)
+        #expect(Format.change(from: 1, to: -1e300) == "<-999999%")
+        #expect(Format.change(from: 1, to: 10_000) == "+999900%")
+    }
 }
