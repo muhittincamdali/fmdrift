@@ -76,7 +76,7 @@
         "agreement" : 1,
         "medianLatency" : 0.6,
         "medianOutputTokens" : 7,
-        "output" : "{\"sentiment\": \"negative\"}",
+        "output" : "{\"sentiment\":\"negative\"}",
         "passRate" : 1,
         "passed" : true,
         "samples" : 1
@@ -85,7 +85,7 @@
         "agreement" : 1,
         "medianLatency" : 0.55,
         "medianOutputTokens" : 7,
-        "output" : "{\"sentiment\": \"negative\"}",
+        "output" : "{\"sentiment\":\"negative\"}",
         "passRate" : 1,
         "passed" : true,
         "samples" : 1

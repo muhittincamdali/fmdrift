@@ -6,7 +6,7 @@
 | --- | --- | --- | --- | --- | --- |
 | ❌ | capital | 0/1 | 100% | 388 ms | The capital of France is Paris. |
 | ❌ | ticket-summary | 1/3 | 67% | 1.21 s | The customer reports a double charge. |
-| ✅ | sentiment | 1/1 | 100% | 550 ms | {"sentiment": "negative"} |
+| ✅ | sentiment | 1/1 | 100% | 550 ms | {"sentiment":"negative"} |
 | ✅ | unsafe-request | 1/1 | 100% | 190 ms | \[guardrailViolation\] |
 | ❌ | news-summary | 0/1 | 100% | 310 ms | \[guardrailViolation\] |
 
