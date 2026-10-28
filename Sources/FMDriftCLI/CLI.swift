@@ -27,11 +27,24 @@ public enum CLI {
             return ExitStatus.usage
         }
         guard let runnable = command as? any ContextCommand else {
-            // The root command without a subcommand never gets here: `run` is the default.
-            context.write(FMDriftCommand.helpMessage() + "\n")
+            // `--help`, `-h` and `help <subcommand>` parse to the library's help command, whose
+            // own run() prints to standard output directly instead of through the context.
+            context.write(helpMessage(for: arguments) + "\n")
             return ExitStatus.clean
         }
         return await runnable.execute(context)
+    }
+
+    /// Help for the first subcommand named in `arguments`, or for fmdrift itself.
+    static func helpMessage(for arguments: [String]) -> String {
+        let subcommands = FMDriftCommand.configuration.subcommands
+        for argument in arguments {
+            if argument == "--" { break }
+            if let subcommand = subcommands.first(where: { $0._commandName == argument }) {
+                return FMDriftCommand.helpMessage(for: subcommand)
+            }
+        }
+        return FMDriftCommand.helpMessage()
     }
 }
 
