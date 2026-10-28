@@ -10,12 +10,15 @@ import Foundation
 ///
 /// A pattern that gave up once gives up at once on every later text in the process. Otherwise a
 /// suite could repeat it over hundreds of cases and samples, waiting the limit each time and
-/// leaving one busy thread per match.
+/// leaving one busy thread per match. Distinct slow patterns are bounded by the run's
+/// ``PatternBudget``.
 enum PatternMatch {
     enum Outcome: Sendable, Equatable {
         case matched
         case notMatched
         case timedOut
+        /// Not tried: the run had already spent its budget for regular expressions.
+        case budgetSpent
     }
 
     /// Far above what a sound pattern needs on any answer the model can give (microseconds).
@@ -23,14 +26,30 @@ enum PatternMatch {
 
     private static let slowPatterns = SlowPatterns()
 
-    /// Why a check gave up, for the report.
-    static func timedOutDetail(_ pattern: String, limit: Double = timeLimit) -> String {
-        "gave up on /\(pattern)/: matching took over \(Format.duration(limit)), it backtracks too much; simplify it"
+    /// Why a check failed without a match, for the report; nil when the pattern was tried.
+    static func detail(_ outcome: Outcome, pattern: String, limit: Double = timeLimit) -> String? {
+        switch outcome {
+        case .matched, .notMatched:
+            return nil
+        case .timedOut:
+            return "gave up on /\(pattern)/: matching took over \(Format.duration(limit)), it backtracks too much; "
+                + "simplify it"
+        case .budgetSpent:
+            return "did not try /\(pattern)/: this run already gave up on \(PatternBudget.maximumGiveUps) "
+                + "regular expressions or spent \(Format.duration(PatternBudget.maximumSeconds)) matching them; "
+                + "simplify the patterns that backtrack"
+        }
     }
 
     /// An invalid pattern does not match; suites and schemas are checked when they are read.
-    static func run(_ pattern: String, in text: String, limit: Double = timeLimit) -> Outcome {
+    static func run(
+        _ pattern: String,
+        in text: String,
+        budget: PatternBudget = PatternBudget(),
+        limit: Double = timeLimit
+    ) -> Outcome {
         if slowPatterns.contains(pattern) { return .timedOut }
+        guard let allowance = budget.allowance(limit: limit) else { return .budgetSpent }
         let box = OutcomeBox()
         let thread = Thread {
             let regex = try? Regex(pattern)
@@ -39,12 +58,58 @@ enum PatternMatch {
         }
         // Compiling a deeply nested pattern recurses; give it the room the suite reader has.
         thread.stackSize = SuiteLoader.parserStackSize
+        let started = DispatchTime.now()
         thread.start()
-        guard let outcome = box.wait(seconds: limit) else {
-            slowPatterns.insert(pattern)
-            return .timedOut
+        let outcome = box.wait(seconds: allowance)
+        let elapsed = Double(DispatchTime.now().uptimeNanoseconds - started.uptimeNanoseconds) / 1e9
+        budget.charge(seconds: elapsed, gaveUp: outcome == nil)
+        if let outcome { return outcome }
+        // A wait the budget cut short says nothing about the pattern itself.
+        guard allowance >= limit else { return .budgetSpent }
+        slowPatterns.insert(pattern)
+        return .timedOut
+    }
+}
+
+/// What one run may spend on regular expressions from its suite and schemas.
+///
+/// The time limit bounds one match, not a run: each distinct pattern that backtracks costs
+/// another full limit, and its thread keeps running after the check gives up because a `Regex`
+/// match cannot be stopped. Twenty such patterns in a 1 KB suite kept `run --replay` busy for
+/// 40 s and burned 384 s of CPU time on 20 threads. Once the run has given up on
+/// ``maximumGiveUps`` matches, or spent ``maximumSeconds`` matching, later patterns are not
+/// tried and their checks fail. A sound pattern takes microseconds, so only a suite with
+/// patterns that backtrack reaches either bound.
+final class PatternBudget: @unchecked Sendable {
+    /// Bounds the threads left running and the time spent waiting for them.
+    static let maximumGiveUps = 2
+    /// Bounds patterns that are slow but finish within the time limit.
+    static let maximumSeconds: Double = 30
+
+    private let giveUpLimit: Int
+    private let secondsLimit: Double
+    private let lock = NSLock()
+    private var giveUps = 0
+    private var seconds: Double = 0
+
+    init(maximumGiveUps: Int = maximumGiveUps, maximumSeconds: Double = maximumSeconds) {
+        giveUpLimit = maximumGiveUps
+        secondsLimit = maximumSeconds
+    }
+
+    /// How long the next match may take; nil when the budget is spent.
+    func allowance(limit: Double) -> Double? {
+        lock.withLock {
+            guard giveUps < giveUpLimit, seconds < secondsLimit else { return nil }
+            return min(limit, secondsLimit - seconds)
         }
-        return outcome
+    }
+
+    func charge(seconds elapsed: Double, gaveUp: Bool) {
+        lock.withLock {
+            seconds += elapsed
+            if gaveUp { giveUps += 1 }
+        }
     }
 }
 

@@ -42,6 +42,7 @@ public struct Runner: Sendable {
         let total = counts.reduce(0, +)
         var completed = 0
         var results: [CaseResult] = []
+        let patterns = PatternBudget()
 
         for (testCase, count) in zip(selected, counts) {
             var samples: [SampleResult] = []
@@ -57,7 +58,7 @@ public struct Runner: Sendable {
                 generation.latency = (generation.latency * 1000).rounded() / 1000
                 let sample = SampleResult(
                     generation: generation,
-                    checks: Evaluator.evaluate(generation, for: testCase)
+                    checks: Evaluator.evaluate(generation, for: testCase, patterns: patterns)
                 )
                 samples.append(sample)
                 completed += 1
