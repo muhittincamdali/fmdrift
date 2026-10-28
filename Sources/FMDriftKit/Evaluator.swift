@@ -29,6 +29,11 @@ public enum Evaluator {
     public static let answerLabel = "model answers"
 
     public static func evaluate(_ generation: Generation, for testCase: TestCase) -> [CheckResult] {
+        evaluate(generation, for: testCase, patterns: PatternBudget())
+    }
+
+    /// Checks one response, charging regular expressions to the run's `patterns` budget.
+    static func evaluate(_ generation: Generation, for testCase: TestCase, patterns: PatternBudget) -> [CheckResult] {
         var results: [CheckResult] = []
         let expectsRefusal = testCase.assertions.contains { $0.kind == .refusal(true) }
         let mentionsRefusal = testCase.assertions.contains {
@@ -46,7 +51,7 @@ public enum Evaluator {
         if let schema = testCase.schema, let text = generation.text {
             if let value = JSONValue.parse(text) {
                 structured = value
-                let problems = SchemaValidator.problems(in: value, against: schema)
+                let problems = SchemaValidator.problems(in: value, against: schema, patterns: patterns)
                 results.append(
                     CheckResult(
                         label: schemaLabel,
@@ -63,7 +68,13 @@ public enum Evaluator {
 
         for assertion in testCase.assertions {
             results.append(
-                check(assertion, generation: generation, structured: structured, expectsRefusal: expectsRefusal)
+                check(
+                    assertion,
+                    generation: generation,
+                    structured: structured,
+                    expectsRefusal: expectsRefusal,
+                    patterns: patterns
+                )
             )
         }
         return results
@@ -73,7 +84,8 @@ public enum Evaluator {
         _ assertion: Assertion,
         generation: Generation,
         structured: JSONValue?,
-        expectsRefusal: Bool
+        expectsRefusal: Bool,
+        patterns: PatternBudget
     ) -> CheckResult {
         let label = assertion.label
         func result(_ passed: Bool, _ detail: @autoclosure () -> String) -> CheckResult {
@@ -123,13 +135,20 @@ public enum Evaluator {
         } else {
             subject = .string(text)
         }
-        return content(assertion, subject: subject, isWholeText: assertion.path == nil, result: result)
+        return content(
+            assertion,
+            subject: subject,
+            isWholeText: assertion.path == nil,
+            patterns: patterns,
+            result: result
+        )
     }
 
     private static func content(
         _ assertion: Assertion,
         subject: JSONValue,
         isWholeText: Bool,
+        patterns: PatternBudget,
         result: (Bool, @autoclosure () -> String) -> CheckResult
     ) -> CheckResult {
         let ignoreCase = assertion.ignoreCase
@@ -167,17 +186,13 @@ public enum Evaluator {
         case .oneOf(let options):
             return result(options.contains(where: equal), "got \(isWholeText ? shown : subject.compactJSON)")
         case .matches(let pattern):
-            switch PatternMatch.run(pattern, in: text) {
-            case .matched: return result(true, "")
-            case .notMatched: return result(false, "no match in \(shown)")
-            case .timedOut: return result(false, PatternMatch.timedOutDetail(pattern))
-            }
+            let outcome = PatternMatch.run(pattern, in: text, budget: patterns)
+            if let detail = PatternMatch.detail(outcome, pattern: pattern) { return result(false, detail) }
+            return result(outcome == .matched, "no match in \(shown)")
         case .notMatches(let pattern):
-            switch PatternMatch.run(pattern, in: text) {
-            case .matched: return result(false, "matched in \(shown)")
-            case .notMatched: return result(true, "")
-            case .timedOut: return result(false, PatternMatch.timedOutDetail(pattern))
-            }
+            let outcome = PatternMatch.run(pattern, in: text, budget: patterns)
+            if let detail = PatternMatch.detail(outcome, pattern: pattern) { return result(false, detail) }
+            return result(outcome == .notMatched, "matched in \(shown)")
         case .minLength(let count):
             let length = length(of: subject)
             return result(length >= count, "\(length) \(unit(of: subject))")

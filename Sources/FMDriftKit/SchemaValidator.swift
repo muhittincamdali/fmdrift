@@ -8,12 +8,23 @@ import Foundation
 public enum SchemaValidator {
     /// Problems found, each prefixed with the path where it occurs; empty when the value conforms.
     public static func problems(in value: JSONValue, against schema: JSONSchema) -> [String] {
+        problems(in: value, against: schema, patterns: PatternBudget())
+    }
+
+    /// Problems found, charging `pattern` constraints to the run's `patterns` budget.
+    static func problems(in value: JSONValue, against schema: JSONSchema, patterns: PatternBudget) -> [String] {
         var problems: [String] = []
-        check(value, schema, path: "$", problems: &problems)
+        check(value, schema, path: "$", patterns: patterns, problems: &problems)
         return problems
     }
 
-    private static func check(_ value: JSONValue, _ schema: JSONSchema, path: String, problems: inout [String]) {
+    private static func check(
+        _ value: JSONValue,
+        _ schema: JSONSchema,
+        path: String,
+        patterns: PatternBudget,
+        problems: inout [String]
+    ) {
         // Keep reports short when a whole subtree is wrong.
         guard problems.count < 20 else { return }
         switch schema {
@@ -25,7 +36,8 @@ public enum SchemaValidator {
             for property in properties {
                 if let child = object[property.name] {
                     if child == .null, !property.isRequired { continue }
-                    check(child, property.schema, path: "\(path).\(property.name)", problems: &problems)
+                    let childPath = "\(path).\(property.name)"
+                    check(child, property.schema, path: childPath, patterns: patterns, problems: &problems)
                 } else if property.isRequired {
                     problems.append("\(path): missing required property `\(property.name)`")
                 }
@@ -44,10 +56,11 @@ public enum SchemaValidator {
                 problems.append("\(path): \"\(Excerpt.of(text))\" is not one of \(allowed)")
             }
             if let pattern {
-                switch PatternMatch.run(pattern, in: text) {
-                case .matched: break
-                case .notMatched: problems.append("\(path): \"\(Excerpt.of(text))\" does not match /\(pattern)/")
-                case .timedOut: problems.append("\(path): \(PatternMatch.timedOutDetail(pattern))")
+                let outcome = PatternMatch.run(pattern, in: text, budget: patterns)
+                if let detail = PatternMatch.detail(outcome, pattern: pattern) {
+                    problems.append("\(path): \(detail)")
+                } else if outcome == .notMatched {
+                    problems.append("\(path): \"\(Excerpt.of(text))\" does not match /\(pattern)/")
                 }
             }
         case .integer(let minimum, let maximum, _):
@@ -79,7 +92,7 @@ public enum SchemaValidator {
                 problems.append("\(path): \(elements.count) items, expected at most \(maxItems)")
             }
             for (index, element) in elements.enumerated() {
-                check(element, items, path: "\(path)[\(index)]", problems: &problems)
+                check(element, items, path: "\(path)[\(index)]", patterns: patterns, problems: &problems)
             }
         }
     }
