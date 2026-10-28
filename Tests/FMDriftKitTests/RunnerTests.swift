@@ -77,6 +77,36 @@ struct RunnerTests {
         #expect(events.items.allSatisfy { $0.total == 4 })
     }
 
+    @Test func structuredAnswersAgreeWhateverTheKeyOrder() async throws {
+        // Recorded on macOS 27.0.1 (26A434): ten greedy runs of one triage prompt gave the same
+        // three values in four different key orders.
+        let structured = try SuiteLoader.parse(
+            """
+            cases:
+              - id: triage
+                prompt: Triage
+                repeat: 3
+                schema:
+                  type: object
+                  properties:
+                    category: { type: string }
+                    urgency: { type: integer }
+            """
+        )
+        let provider = ScriptedProvider(answers: [
+            "triage": [
+                Generation(text: #"{"category": "bug", "urgency": 5}"#, latency: 0.5),
+                Generation(text: #"{"urgency": 5, "category": "bug"}"#, latency: 0.5),
+                Generation(text: #"{"urgency": 4, "category": "bug"}"#, latency: 0.5),
+            ]
+        ])
+        let result = await Runner(provider: provider).run(structured)
+        #expect(abs(result.cases[0].agreement - 2.0 / 3) < 1e-9)
+        #expect(result.cases[0].representativeOutput == #"{"category":"bug","urgency":5}"#)
+        // The recorded text stays as the model wrote it.
+        #expect(result.cases[0].samples[1].generation.text == #"{"urgency": 5, "category": "bug"}"#)
+    }
+
     @Test func aCaseFailsBelowItsPassRate() async {
         let provider = ScriptedProvider(answers: [
             "capital": [Generation(text: "Lyon", latency: 0.1), Generation(text: "Paris", latency: 0.1)],

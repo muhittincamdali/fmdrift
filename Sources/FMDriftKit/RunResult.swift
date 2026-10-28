@@ -121,7 +121,7 @@ public struct CaseResult: Sendable, Equatable, Codable {
         var order: [String] = []
         var counts: [String: Int] = [:]
         for sample in samples {
-            let key = sample.outputKey
+            let key = sample.outputKey(structured: schema != nil)
             if counts[key] == nil { order.append(key) }
             counts[key, default: 0] += 1
         }
@@ -162,10 +162,14 @@ public struct SampleResult: Sendable, Equatable, Codable {
     /// No check failed. Skipped checks do not fail a sample.
     public var passed: Bool { !checks.contains { $0.status == .failed } }
 
-    /// The text that counts toward agreement: the output, or `[kind]` for an error.
-    public var outputKey: String {
+    /// The text that counts toward agreement: the output, or `[kind]` for an error. A
+    /// structured answer counts by value: guided generation on macOS 27.0.1 returned the same
+    /// properties in different orders across greedy runs, so its JSON is compared with sorted keys.
+    public func outputKey(structured: Bool) -> String {
         if let failure = generation.failure { return "[\(failure.kind.rawValue)]" }
-        return generation.text ?? ""
+        let text = generation.text ?? ""
+        if structured, let value = JSONValue.parse(text) { return value.compactJSON }
+        return text
     }
 }
 
