@@ -25,4 +25,29 @@ struct HostileInputTests {
         #expect(await cli.run("run", "fmdrift") == 2)
         #expect(cli.stderr.contains("fmdrift/deep.yaml:4: nests deeper than"))
     }
+
+    /// A file added to fmdrift/ by a pull request names itself in `validate` and `run` output,
+    /// which CI logs show and terminals interpret.
+    @Test func escapesFileNamesInMessages() async throws {
+        let cli = try harness()
+        let hostile = "x\u{1B}]52;c;ZXZpbA==\u{7}\u{1B}[2J\u{202E}"
+        let escaped = #"x\u{1B}]52;c;ZXZpbA==\u{7}\u{1B}[2J\u{202E}"#
+        try cli.write("fmdrift/\(hostile).yaml", supportSuite.replacingOccurrences(of: "name: support\n", with: ""))
+        #expect(await cli.run("validate", "fmdrift") == 0)
+        let summary = "suite `x--52-c-ZXZpbA-----2J-`, 2 cases, 2 generations per run"
+        #expect(cli.stdout == "ok  fmdrift/\(escaped).yaml: \(summary)\n")
+
+        let invalid = "cases:\n  - id: a\n    prompt: p\n    expect:\n      - contans: x\n"
+        try cli.write("fmdrift/\(hostile)-bad.yaml", invalid)
+        #expect(await cli.run("validate", "fmdrift") == 1)
+        #expect(cli.stdout.contains("invalid  fmdrift/\(escaped)-bad.yaml:5: case `a` check: unknown key `contans`"))
+        #expect(await cli.run("run", "fmdrift") == 2)
+        #expect(cli.stderr.contains("error: fmdrift/\(escaped)-bad.yaml:5:"))
+
+        for output in [cli.stdout, cli.stderr] {
+            #expect(!output.contains("\u{1B}"))
+            #expect(!output.contains("\u{7}"))
+            #expect(!output.contains("\u{202E}"))
+        }
+    }
 }
