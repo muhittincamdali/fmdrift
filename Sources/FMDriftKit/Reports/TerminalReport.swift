@@ -257,8 +257,9 @@ public enum TerminalReport {
             budget -= piece.count
             switch segment.operation {
             case .equal: text += piece
-            case .removed: text += style.color ? style.red(piece) : "[-\(piece)-]"
-            case .added: text += style.color ? style.green(piece) : "{+\(piece)+}"
+            // The markers stay in color too: the blue report theme does not separate red from green.
+            case .removed: text += style.red("[-\(piece)-]")
+            case .added: text += style.green("{+\(piece)+}")
             }
             started = true
         }
