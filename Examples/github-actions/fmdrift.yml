@@ -1,0 +1,37 @@
+# Prompt checks for a repository with fmdrift.yaml (or fmdrift/*.yaml) and committed snapshots
+# in fmdrift-snapshots/. Copy to .github/workflows/fmdrift.yml.
+#
+# GitHub-hosted macOS runners are virtual machines without Apple Intelligence, so they cannot
+# run the on-device model. They can still validate the suites and check the recorded answers
+# again after a check changed. Live runs need a Mac with Apple Intelligence turned on, set up as
+# a self-hosted runner.
+name: Prompts
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recorded:
+    name: Validate suites and re-check recorded answers
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install fmdrift
+        run: brew install muhittincamdali/tap/fmdrift
+      - name: Validate
+        run: fmdrift validate
+      - name: Re-check the recorded answers
+        run: fmdrift run --replay fmdrift-snapshots --junit fmdrift-junit.xml --markdown "$GITHUB_STEP_SUMMARY"
+
+  live:
+    name: Run on the on-device model
+    # A Mac with Apple Intelligence, registered with these labels.
+    runs-on: [self-hosted, macOS, apple-intelligence]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run and compare with the newest snapshot of another OS build
+        run: fmdrift run --baseline fmdrift-snapshots --markdown "$GITHUB_STEP_SUMMARY"
