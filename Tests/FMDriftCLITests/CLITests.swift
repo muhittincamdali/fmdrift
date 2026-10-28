@@ -338,6 +338,29 @@ struct CLITests {
         #expect(cli.stdout.contains("suite `starter`, 2 cases, 6 generations per run"))
     }
 
+    @Test func escapesUntrustedTextInMessagesAndReports() async throws {
+        let cli = try harness()
+        try cli.write(
+            "bad.yaml", "cases:\n  - id: a\n    prompt: p\n    expect:\n      - \"x\\e]52;c;ZXZpbA==\\a\": 1\n")
+        #expect(await cli.run("validate", "bad.yaml") == 1)
+        #expect(!cli.stdout.contains("\u{1B}"))
+        #expect(cli.stdout.contains(#"\u{1B}]52;c;ZXZpbA==\u{7}"#))
+        #expect(await cli.run("run", "bad.yaml") == 2)
+        #expect(!cli.stderr.contains("\u{1B}"))
+
+        // A snapshot is untrusted too: its OS fields reach the diff header.
+        #expect(await cli.run("record") == 0)
+        let path = "fmdrift-snapshots/support/macOS-27.0.1-26A434.json"
+        var snapshot = try SnapshotStore.read(contentsOf: cli.directory.appendingPathComponent(path))
+        snapshot.environment.osBuild = "26A434\u{1B}[2J\u{202E}"
+        snapshot.environment.chip = "M\u{1B}]0;title\u{7}"
+        try SnapshotStore.write(snapshot, to: cli.directory.appendingPathComponent("hostile.json"))
+        #expect(await cli.run("diff", "hostile.json", path) == 0)
+        #expect(!cli.stdout.contains("\u{1B}"))
+        #expect(!cli.stdout.contains("\u{202E}"))
+        #expect(cli.stdout.contains(#"macOS 27.0.1 (26A434\u{1B}[2J\u{202E})"#))
+    }
+
     @Test func reportsUnreadableSnapshots() async throws {
         let cli = try harness()
         try cli.write("broken.json", "{}")
