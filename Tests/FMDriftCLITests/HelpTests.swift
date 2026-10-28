@@ -59,4 +59,26 @@ struct HelpTests {
         #expect(cli.stdout.contains("USAGE: fmdrift <subcommand>"))
         #expect(cli.stdout.contains("run (default)"))
     }
+
+    /// `run` is the default subcommand; a mistyped command used to be reported as an unreadable
+    /// suite file.
+    @Test func namesAnUnknownCommand() async throws {
+        let cli = try harness()
+        #expect(await cli.run("frobnicate") == 2)
+        #expect(
+            cli.stderr == """
+                error: unknown command `frobnicate`; the commands are run, record, diff, validate, init, doctor. \
+                To run suites, give the path of a suite file or folder.
+
+                """
+        )
+        #expect(cli.stdout.isEmpty)
+
+        // A path, or a word that names a file or folder, is still read as a suite.
+        #expect(await cli.run("missing.yaml") == 2)
+        #expect(cli.stderr.hasPrefix("error: missing.yaml: cannot be read"))
+        try cli.write("suites/s.yaml", supportSuite)
+        #expect(await cli.run("suites") == 1)
+        #expect(!cli.stderr.contains("unknown command"))
+    }
 }
