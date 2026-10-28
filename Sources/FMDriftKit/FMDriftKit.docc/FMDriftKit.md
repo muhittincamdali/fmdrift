@@ -47,6 +47,7 @@ the OS version and build identify the model, so ``RunEnvironment`` records them 
 ### Running
 
 - ``Runner``
+- ``PatternBudget``
 - ``ModelProvider``
 - ``SystemModelProvider``
 - ``ReplayProvider``

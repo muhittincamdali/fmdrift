@@ -83,9 +83,9 @@ check fails and names the error. A decline written as text ("Sorry, I can't help
 answer, not an error; check its words with `containsAny`.
 
 A pattern that backtracks too much costs up to 2 s, and its match keeps a CPU core busy until
-fmdrift exits. Once a run of a suite has given up on two patterns, or spent 30 s matching
-patterns in all, the remaining `matches`, `notMatches` and schema `pattern` checks of that run
-fail without being tried. A sound pattern takes microseconds, so only a suite with patterns that
+fmdrift exits. Once one `fmdrift run` or `fmdrift record` has given up on two patterns, or spent
+30 s matching patterns in all, across all the suites it runs, the remaining `matches`,
+`notMatches` and schema `pattern` checks fail without being tried. A sound pattern takes microseconds, so only a suite with patterns that
 backtrack reaches either bound.
 
 ## Schemas

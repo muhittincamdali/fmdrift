@@ -10,7 +10,7 @@ import Foundation
 ///
 /// A pattern that gave up once gives up at once on every later text in the process. Otherwise a
 /// suite could repeat it over hundreds of cases and samples, waiting the limit each time and
-/// leaving one busy thread per match. Distinct slow patterns are bounded by the run's
+/// leaving one busy thread per match. Distinct slow patterns are bounded by a shared
 /// ``PatternBudget``.
 enum PatternMatch {
     enum Outcome: Sendable, Equatable {
@@ -35,7 +35,7 @@ enum PatternMatch {
             return "gave up on /\(pattern)/: matching took over \(Format.duration(limit)), it backtracks too much; "
                 + "simplify it"
         case .budgetSpent:
-            return "did not try /\(pattern)/: this run already gave up on \(PatternBudget.maximumGiveUps) "
+            return "did not try /\(pattern)/: fmdrift already gave up on \(PatternBudget.maximumGiveUps) "
                 + "regular expressions or spent \(Format.duration(PatternBudget.maximumSeconds)) matching them; "
                 + "simplify the patterns that backtrack"
         }
@@ -71,20 +71,25 @@ enum PatternMatch {
     }
 }
 
-/// What one run may spend on regular expressions from its suite and schemas.
+/// What regular expressions from suites and schemas may cost, shared by every run it is given to.
 ///
 /// The time limit bounds one match, not a run: each distinct pattern that backtracks costs
 /// another full limit, and its thread keeps running after the check gives up because a `Regex`
 /// match cannot be stopped. Twenty such patterns in a 1 KB suite kept `run --replay` busy for
-/// 40 s and burned 384 s of CPU time on 20 threads. Once the run has given up on
-/// ``maximumGiveUps`` matches, or spent ``maximumSeconds`` matching, later patterns are not
-/// tried and their checks fail. A sound pattern takes microseconds, so only a suite with
-/// patterns that backtrack reaches either bound.
-final class PatternBudget: @unchecked Sendable {
+/// 40 s and burned 384 s of CPU time on 20 threads. A budget for each suite was not enough
+/// either: ten suites with two such patterns each, run from one folder, cost the same 40 s and
+/// 20 threads. Once the budget has given up on ``maximumGiveUps`` matches, or spent
+/// ``maximumSeconds`` matching, later patterns are not tried and their checks fail. A sound
+/// pattern takes microseconds, so only patterns that backtrack reach either bound.
+///
+/// A ``Runner`` makes a budget of its own unless it is given one. To bound several suites
+/// together, as `fmdrift run` does for all the suites of one command, give each runner the same
+/// budget.
+public final class PatternBudget: @unchecked Sendable {
     /// Bounds the threads left running and the time spent waiting for them.
-    static let maximumGiveUps = 2
+    public static let maximumGiveUps = 2
     /// Bounds patterns that are slow but finish within the time limit.
-    static let maximumSeconds: Double = 30
+    public static let maximumSeconds: Double = 30
 
     private let giveUpLimit: Int
     private let secondsLimit: Double
@@ -92,7 +97,12 @@ final class PatternBudget: @unchecked Sendable {
     private var giveUps = 0
     private var seconds: Double = 0
 
-    init(maximumGiveUps: Int = maximumGiveUps, maximumSeconds: Double = maximumSeconds) {
+    /// A budget of ``maximumGiveUps`` abandoned matches and ``maximumSeconds`` of matching.
+    public convenience init() {
+        self.init(maximumGiveUps: Self.maximumGiveUps, maximumSeconds: Self.maximumSeconds)
+    }
+
+    init(maximumGiveUps: Int, maximumSeconds: Double) {
         giveUpLimit = maximumGiveUps
         secondsLimit = maximumSeconds
     }
