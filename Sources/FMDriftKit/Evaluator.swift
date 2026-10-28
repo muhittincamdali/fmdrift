@@ -167,9 +167,17 @@ public enum Evaluator {
         case .oneOf(let options):
             return result(options.contains(where: equal), "got \(isWholeText ? shown : subject.compactJSON)")
         case .matches(let pattern):
-            return result(matches(pattern, text), "no match in \(shown)")
+            switch PatternMatch.run(pattern, in: text) {
+            case .matched: return result(true, "")
+            case .notMatched: return result(false, "no match in \(shown)")
+            case .timedOut: return result(false, PatternMatch.timedOutDetail(pattern))
+            }
         case .notMatches(let pattern):
-            return result(!matches(pattern, text), "matched in \(shown)")
+            switch PatternMatch.run(pattern, in: text) {
+            case .matched: return result(false, "matched in \(shown)")
+            case .notMatched: return result(true, "")
+            case .timedOut: return result(false, PatternMatch.timedOutDetail(pattern))
+            }
         case .minLength(let count):
             let length = length(of: subject)
             return result(length >= count, "\(length) \(unit(of: subject))")
@@ -185,11 +193,6 @@ public enum Evaluator {
         case .maxLatency, .maxOutputTokens, .refusal:
             return result(true, "")
         }
-    }
-
-    static func matches(_ pattern: String, _ text: String) -> Bool {
-        guard let regex = try? Regex(pattern) else { return false }
-        return (try? regex.firstMatch(in: text)) != nil
     }
 
     private static func length(of value: JSONValue) -> Int {

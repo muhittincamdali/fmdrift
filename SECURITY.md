@@ -46,7 +46,8 @@ include, for example:
   text with invisible characters,
 - a suite or snapshot file that crashes fmdrift, exhausts memory or the stack, or keeps it busy
   far beyond its size, despite the limits (1 MiB, 1,000 levels of nesting and 200,000 YAML nodes
-  per suite, 32 MiB and 64 levels of nesting per snapshot),
+  per suite, 32 MiB and 64 levels of nesting per snapshot, 2 seconds per regular expression
+  match),
 - a suite or snapshot name that makes `record` write outside the snapshot folder.
 
 What the model says, and whether Apple's guardrails flag it, is outside fmdrift's control; report
