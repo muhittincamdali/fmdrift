@@ -34,7 +34,7 @@
           ],
           "generation" : {
             "inputTokens" : 122,
-            "latency" : 1.011,
+            "latency" : 1.311,
             "outputTokens" : 27,
             "text" : "User reports double charge for yearly plan, requests refund for order 4417."
           }
@@ -60,7 +60,7 @@
           ],
           "generation" : {
             "inputTokens" : 122,
-            "latency" : 0.599,
+            "latency" : 0.658,
             "outputTokens" : 27,
             "text" : "User reports double charge for yearly plan, requests refund for order 4417."
           }
@@ -86,7 +86,7 @@
           ],
           "generation" : {
             "inputTokens" : 122,
-            "latency" : 0.605,
+            "latency" : 0.653,
             "outputTokens" : 27,
             "text" : "User reports double charge for yearly plan, requests refund for order 4417."
           }
@@ -137,7 +137,7 @@
           ],
           "generation" : {
             "inputTokens" : 231,
-            "latency" : 0.503,
+            "latency" : 0.572,
             "outputTokens" : 29,
             "text" : "{\"urgency\": 5, \"category\": \"bug\", \"sentiment\": \"negative\"}"
           }
@@ -163,7 +163,7 @@
           ],
           "generation" : {
             "inputTokens" : 231,
-            "latency" : 0.496,
+            "latency" : 0.547,
             "outputTokens" : 29,
             "text" : "{\"urgency\": 5, \"category\": \"bug\", \"sentiment\": \"negative\"}"
           }
@@ -189,7 +189,7 @@
           ],
           "generation" : {
             "inputTokens" : 231,
-            "latency" : 0.491,
+            "latency" : 0.537,
             "outputTokens" : 29,
             "text" : "{\"urgency\": 5, \"category\": \"bug\", \"sentiment\": \"negative\"}"
           }
@@ -270,7 +270,7 @@
           ],
           "generation" : {
             "inputTokens" : 101,
-            "latency" : 0.486,
+            "latency" : 0.535,
             "outputTokens" : 17,
             "text" : "Gracias por informar sobre el colapso de la exportación."
           }
@@ -292,7 +292,7 @@
           ],
           "generation" : {
             "inputTokens" : 101,
-            "latency" : 0.473,
+            "latency" : 0.515,
             "outputTokens" : 17,
             "text" : "Gracias por informar sobre el colapso de la exportación."
           }
@@ -314,7 +314,7 @@
           ],
           "generation" : {
             "inputTokens" : 101,
-            "latency" : 0.474,
+            "latency" : 0.512,
             "outputTokens" : 17,
             "text" : "Gracias por informar sobre el colapso de la exportación."
           }
@@ -357,7 +357,7 @@
           ],
           "generation" : {
             "inputTokens" : 285,
-            "latency" : 0.992,
+            "latency" : 1.059,
             "outputTokens" : 25,
             "text" : "{\"topics\": [\"skin-smoothing slider\", \"export to TIFF\", \"performance\"]}"
           }
@@ -375,7 +375,7 @@
           ],
           "generation" : {
             "inputTokens" : 285,
-            "latency" : 0.798,
+            "latency" : 0.803,
             "outputTokens" : 25,
             "text" : "{\"topics\": [\"skin-smoothing slider\", \"export to TIFF\", \"performance\"]}"
           }
@@ -393,7 +393,7 @@
           ],
           "generation" : {
             "inputTokens" : 285,
-            "latency" : 0.768,
+            "latency" : 0.826,
             "outputTokens" : 25,
             "text" : "{\"topics\": [\"skin-smoothing slider\", \"export to TIFF\", \"performance\"]}"
           }
@@ -452,7 +452,7 @@
           ],
           "generation" : {
             "inputTokens" : 96,
-            "latency" : 0.344,
+            "latency" : 0.374,
             "outputTokens" : 15,
             "text" : "Unable to work with that request."
           }
@@ -470,7 +470,7 @@
           ],
           "generation" : {
             "inputTokens" : 96,
-            "latency" : 0.348,
+            "latency" : 0.373,
             "outputTokens" : 15,
             "text" : "Unable to work with that request."
           }
@@ -488,7 +488,7 @@
           ],
           "generation" : {
             "inputTokens" : 96,
-            "latency" : 0.352,
+            "latency" : 0.382,
             "outputTokens" : 15,
             "text" : "Unable to work with that request."
           }
@@ -506,7 +506,7 @@
       }
     }
   ],
-  "duration" : 8.765,
+  "duration" : 9.702,
   "environment" : {
     "chip" : "Apple M5 Max",
     "contextSize" : 8192,
@@ -518,8 +518,8 @@
     "platform" : "macOS",
     "provider" : "system"
   },
-  "fmdriftVersion" : "0.1.0-dev",
+  "fmdriftVersion" : "0.1.0",
   "format" : 1,
-  "recordedAt" : "2026-10-28T00:04:07Z",
+  "recordedAt" : "2026-10-28T00:20:19Z",
   "suite" : "support"
 }
