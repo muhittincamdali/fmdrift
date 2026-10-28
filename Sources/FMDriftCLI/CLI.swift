@@ -13,6 +13,10 @@ public enum CLI {
     /// status. Help and version print to standard output and return 0; argument errors print to
     /// standard error and return 2.
     public static func main(arguments: [String], context: Context) async -> Int32 {
+        if let word = arguments.first, let message = unknownCommandMessage(word, context: context) {
+            context.error(message)
+            return ExitStatus.usage
+        }
         let command: any ParsableCommand
         do {
             command = try FMDriftCommand.parseAsRoot(arguments)
@@ -33,6 +37,20 @@ public enum CLI {
             return ExitStatus.clean
         }
         return await runnable.execute(context)
+    }
+
+    /// `run` is the default subcommand, so `fmdrift frobnicate` used to look for a suite file
+    /// named `frobnicate` and say it cannot be read. A first argument that names no subcommand,
+    /// has neither `/` nor `.` the way a path to a suite would, and is not a file or folder is a
+    /// mistyped command.
+    static func unknownCommandMessage(_ word: String, context: Context) -> String? {
+        let commands = FMDriftCommand.configuration.subcommands.map { $0._commandName }
+        guard !word.isEmpty, !word.hasPrefix("-"), !word.contains("/"), !word.contains("."),
+            !commands.contains(word), word != "help",
+            !FileManager.default.fileExists(atPath: context.url(for: word).path)
+        else { return nil }
+        return "unknown command `\(word)`; the commands are \(commands.joined(separator: ", ")). "
+            + "To run suites, give the path of a suite file or folder."
     }
 
     /// Help for the first subcommand named in `arguments`, or for fmdrift itself.
