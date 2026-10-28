@@ -49,7 +49,7 @@ public enum TerminalReport {
     public static func header(_ result: RunResult, style: TerminalStyle) -> String {
         let environment = result.environment
         var parts = [
-            "fmdrift \(result.fmdriftVersion)", "suite \(TextSafety.terminal(result.suite))",
+            "fmdrift \(TextSafety.terminal(result.fmdriftVersion))", "suite \(TextSafety.terminal(result.suite))",
             TextSafety.terminal(environment.osLabel),
         ]
         if !environment.chip.isEmpty { parts.append(TextSafety.terminal(environment.chip)) }

@@ -229,6 +229,24 @@ struct TextSafetyTests {
         #expect(document.rootElement()?.attribute(forName: "b")?.stringValue?.contains("<b>x</b>") == true)
     }
 
+    @Test func reportsEscapeHostileSnapshotFields() {
+        // A snapshot arrives with a pull request; every string in it is untrusted.
+        var run = SampleRuns.current
+        run.fmdriftVersion = "0.1.0\u{1B}]8;;https://example.invalid\u{7}"
+        run.environment.provider = "<img src=x onerror=alert(1)>\u{1B}[2J"
+        run.environment.osVersion = "27\u{202E}"
+        let terminal = TerminalReport.run(run, style: .plain)
+        #expect(!terminal.contains("\u{1B}"))
+        #expect(!terminal.contains("\u{202E}"))
+        let markdown = MarkdownReport.run(run)
+        #expect(!markdown.contains("<img"))
+        #expect(!markdown.contains("\u{1B}"))
+        let junit = JUnitReport.run(run)
+        #expect((try? XMLDocument(xmlString: junit)) != nil)
+        let diff = TerminalReport.diff(SnapshotDiff(baseline: run, current: SampleRuns.current), style: .plain)
+        #expect(!diff.contains("\u{1B}"))
+    }
+
     @Test func reportsEscapeHostileOutputs() {
         var run = SampleRuns.current
         let testCase = SampleRuns.capital
