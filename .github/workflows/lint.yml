@@ -32,3 +32,30 @@ jobs:
 
       - name: Lint
         run: swift format lint --strict --recursive Sources Tests Package.swift Examples/LibraryUsage
+
+  scripts:
+    name: Release scripts
+    runs-on: macos-26
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: The release notes come from CHANGELOG.md
+        run: |
+          printf '# Changelog\n\n## [9.9.9] - 2026-01-01\n\n### Added\n\n- A thing.\n\n## [9.9.8]\n\n- Older.\n' > "$RUNNER_TEMP/CHANGELOG.md"
+          test "$(scripts/release-notes.sh 9.9.9 "$RUNNER_TEMP/CHANGELOG.md")" = "$(printf '### Added\n\n- A thing.')"
+          if scripts/release-notes.sh 1.0.0 "$RUNNER_TEMP/CHANGELOG.md"; then exit 1; fi
+
+      - name: The formula is valid Ruby with the release checksum
+        run: |
+          sum="$(printf 'x' | shasum -a 256 | cut -d' ' -f1)"
+          printf '%s  fmdrift-9.9.9-macos-arm64.tar.gz\n' "$sum" > "$RUNNER_TEMP/SHA256SUMS"
+          scripts/homebrew-formula.sh 9.9.9 "$RUNNER_TEMP/SHA256SUMS" > "$RUNNER_TEMP/fmdrift.rb"
+          ruby -c "$RUNNER_TEMP/fmdrift.rb"
+          grep -q "sha256 \"$sum\"" "$RUNNER_TEMP/fmdrift.rb"
+          grep -q 'releases/download/v9.9.9/fmdrift-9.9.9-macos-arm64.tar.gz' "$RUNNER_TEMP/fmdrift.rb"
+          if scripts/homebrew-formula.sh 9.9.9 /dev/null 2>/dev/null; then exit 1; fi
